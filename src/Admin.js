@@ -41,26 +41,42 @@ function AdminLoginScreen({ onSuccess, sessionExpired, onClearExpired }) {
     setLoading(true);
     setError("");
     try {
+      console.log("[admin-login] POST", ADMIN_LOGIN_URL);
       const res = await fetch(ADMIN_LOGIN_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
       });
+      console.log("[admin-login] status", res.status);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(
-          res.status === 401 ? "Access denied" : data.message || "Login failed"
-        );
+        if (res.status === 401) {
+          setError("Access denied — wrong password");
+        } else if (res.status === 429) {
+          setError("Too many attempts — try again later");
+        } else if (res.status === 500) {
+          setError("Server configuration error — contact admin");
+        } else {
+          setError(data.message || `Login failed (${res.status})`);
+        }
         return;
       }
       if (!data.token || typeof data.token !== "string") {
-        setError("Login failed");
+        setError("Login failed — invalid server response");
         return;
       }
       localStorage.setItem(TOKEN_STORAGE_KEY, data.token);
       onSuccess(data.token);
-    } catch {
-      setError("Network error");
+    } catch (err) {
+      console.error("[admin-login] error", err);
+      if (err instanceof TypeError) {
+        // fetch throws TypeError for network failures & CORS blocks
+        setError(
+          "Cannot reach server — check your internet connection or CORS settings"
+        );
+      } else {
+        setError("Unexpected error — please try again");
+      }
     } finally {
       setLoading(false);
     }

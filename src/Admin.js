@@ -40,6 +40,7 @@ function Admin() {
   const [bookClass, setBookClass] = useState("");
   const [subject, setSubject] = useState("");
   const [image, setImage] = useState("");
+  const [editingId, setEditingId] = useState(null);
 
   const loadBooks = useCallback(async () => {
     setError(null);
@@ -67,41 +68,79 @@ function Admin() {
     try {
       const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(`Delete failed (${res.status})`);
+      const deletedId = String(id);
+      if (editingId === deletedId) {
+        setEditingId(null);
+        setTitle("");
+        setAuthor("");
+        setPrice("");
+        setBookClass("");
+        setSubject("");
+        setImage("");
+      }
       await loadBooks();
     } catch (e) {
       alert(e.message || "Delete failed");
     }
   };
 
+  const fillFormFromBook = (book) => {
+    setTitle(book.title ?? "");
+    setAuthor(book.author ?? "");
+    setPrice(
+      book.price !== undefined && book.price !== null && book.price !== ""
+        ? String(book.price)
+        : ""
+    );
+    setBookClass(book.class ?? "");
+    setSubject(book.subject ?? "");
+    setImage(book.image ?? "");
+  };
+
+  const handleEdit = (book) => {
+    const id = book._id || book.id;
+    if (!id) return;
+    setEditingId(String(id));
+    fillFormFromBook(book);
+  };
+
+  const clearForm = () => {
+    setEditingId(null);
+    setTitle("");
+    setAuthor("");
+    setPrice("");
+    setBookClass("");
+    setSubject("");
+    setImage("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    const payload = {
+      title,
+      author,
+      price: price === "" ? undefined : Number(price),
+      class: bookClass,
+      subject,
+      image,
+    };
     try {
-      const res = await fetch("https://bookstore-backend-1-qz9s.onrender.com/books", {
-        method: "POST",
+      const url = editingId ? `${API_BASE}/${editingId}` : API_BASE;
+      const method = editingId ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          author,
-          price: price === "" ? undefined : Number(price),
-          class: bookClass,
-          subject,
-          image,
-        }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const text = await res.text();
         throw new Error(text || `Save failed (${res.status})`);
       }
-      setTitle("");
-      setAuthor("");
-      setPrice("");
-      setBookClass("");
-      setSubject("");
-      setImage("");
+      clearForm();
       await loadBooks();
     } catch (e) {
-      alert(e.message || "Could not add book");
+      alert(e.message || (editingId ? "Could not update book" : "Could not add book"));
     } finally {
       setSubmitting(false);
     }
@@ -133,7 +172,7 @@ function Admin() {
           }}
         >
           <h2 style={{ margin: "0 0 14px", fontSize: "17px", color: "#333" }}>
-            Add book
+            {editingId ? "Edit book" : "Add book"}
           </h2>
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: "12px" }}>
@@ -208,22 +247,49 @@ function Admin() {
                 />
               )}
             </div>
-            <button
-              type="submit"
-              disabled={submitting}
-              style={{
-                padding: "10px 18px",
-                background: submitting ? "#9ec5fe" : "#0d6efd",
-                color: "#fff",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "14px",
-                fontWeight: 600,
-                cursor: submitting ? "not-allowed" : "pointer",
-              }}
-            >
-              {submitting ? "Adding…" : "Add book"}
-            </button>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
+              <button
+                type="submit"
+                disabled={submitting}
+                style={{
+                  padding: "10px 18px",
+                  background: submitting ? "#9ec5fe" : "#0d6efd",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  cursor: submitting ? "not-allowed" : "pointer",
+                }}
+              >
+                {submitting
+                  ? editingId
+                    ? "Saving…"
+                    : "Adding…"
+                  : editingId
+                    ? "Update book"
+                    : "Add book"}
+              </button>
+              {editingId ? (
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={clearForm}
+                  style={{
+                    padding: "10px 18px",
+                    background: "#fff",
+                    color: "#444",
+                    border: "1px solid #dde1e6",
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    cursor: submitting ? "not-allowed" : "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+              ) : null}
+            </div>
           </form>
         </section>
 
@@ -303,22 +369,40 @@ function Admin() {
                       </span>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(book._id || book.id)}
-                    style={{
-                      padding: "6px 12px",
-                      background: "#fff",
-                      color: "#c0392b",
-                      border: "1px solid #e6b8b8",
-                      borderRadius: "8px",
-                      fontSize: "13px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Delete
-                  </button>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                    <button
+                      type="button"
+                      onClick={() => handleEdit(book)}
+                      style={{
+                        padding: "6px 12px",
+                        background: "#fff",
+                        color: "#0d6efd",
+                        border: "1px solid #b6d4fe",
+                        borderRadius: "8px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(book._id || book.id)}
+                      style={{
+                        padding: "6px 12px",
+                        background: "#fff",
+                        color: "#c0392b",
+                        border: "1px solid #e6b8b8",
+                        borderRadius: "8px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>

@@ -45,7 +45,7 @@ function AdminLoginScreen({ onSuccess, sessionExpired, onClearExpired }) {
       const res = await fetch(ADMIN_LOGIN_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ password: password.trim() }),
       });
       console.log("[admin-login] status", res.status);
       const data = await res.json().catch(() => ({}));

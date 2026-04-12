@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
+import Admin from "./Admin";
 
-const BOOK_IMAGE_PLACEHOLDER =
-  "https://via.placeholder.com/300x200?text=Book";
+const BOOK_IMAGE_PLACEHOLDER = "https://via.placeholder.com/150";
 
 const CLASS_FILTERS = [
   "All",
@@ -17,12 +17,6 @@ const CLASS_FILTERS = [
 function formatPriceDisplay(price) {
   const hasPrice = price !== undefined && price !== null && price !== "";
   return hasPrice ? `₹${price}` : "₹/N/A";
-}
-
-function bookImageSrc(book) {
-  const src = book.image;
-  if (src != null && String(src).trim() !== "") return String(src).trim();
-  return BOOK_IMAGE_PLACEHOLDER;
 }
 
 function titleMatchesClass(title, selectedClass) {
@@ -56,10 +50,19 @@ function buildWhatsAppCartOrderUrl(cartBooks) {
 }
 
 function App() {
+  const [routeHash, setRouteHash] = useState(() => window.location.hash || "#/");
   const [books, setBooks] = useState([]);
   const [cart, setCart] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedClass, setSelectedClass] = useState("All");
+
+  useEffect(() => {
+    const onHash = () => setRouteHash(window.location.hash || "#/");
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+
 
   useEffect(() => {
     fetch("https://bookstore-backend-1-qz9s.onrender.com/books")
@@ -68,6 +71,9 @@ function App() {
       .catch((err) => console.log(err));
   }, []);
 
+  if (routeHash === "#/admin") {
+    return <Admin />;
+  }
   const addToCart = (book) => {
     const cartLineId = Date.now() + Math.random();
 
@@ -112,9 +118,31 @@ function App() {
         }
       `}</style>
       <div style={shell}>
-        <h1 style={{ textAlign: "center", margin: "0 0 20px", fontSize: "clamp(1.5rem, 4vw, 2rem)", color: "#1a1a1a" }}>
-          📚 My Bookstore
-        </h1>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "12px",
+            marginBottom: "20px",
+          }}
+        >
+          <h1 style={{ margin: 0, fontSize: "clamp(1.5rem, 4vw, 2rem)", color: "#1a1a1a" }}>
+            📚 My Bookstore
+          </h1>
+          <a
+            href="#/admin"
+            style={{
+              fontSize: "14px",
+              fontWeight: 600,
+              color: "#0d6efd",
+              textDecoration: "none",
+            }}
+          >
+            Admin
+          </a>
+        </div>
 
         {/* Search + class filters */}
         <div
@@ -323,14 +351,22 @@ function App() {
               }}
             >
               <img
-                src={bookImageSrc(book)}
-                alt={book.title ? `Cover: ${book.title}` : "Book cover"}
+                src={
+                  String(book.image ?? "").trim() || BOOK_IMAGE_PLACEHOLDER
+                }
+                alt={book.title || ""}
                 style={{
                   width: "100%",
-                  height: "200px",
+                  height: "150px",
                   objectFit: "cover",
+                  borderRadius: "8px",
                   display: "block",
                   background: "#e8eaed",
+                }}
+                onError={(e) => {
+                  if (e.currentTarget.src !== BOOK_IMAGE_PLACEHOLDER) {
+                    e.currentTarget.src = BOOK_IMAGE_PLACEHOLDER;
+                  }
                 }}
               />
               <div

@@ -41,10 +41,8 @@ function AdminLoginScreen({ onSuccess, sessionExpired, onClearExpired }) {
     setLoading(true);
     setError("");
     try {
-      const API_BASE_URL = "https://bookstore-backend-1-qz9s.onrender.com";
-      const loginUrl = `${API_BASE_URL}/admin/login`;
-      console.log("LOGIN API:", loginUrl);
-      const res = await fetch(loginUrl, {
+      console.log("LOGIN API:", ADMIN_LOGIN_URL);
+      const res = await fetch(ADMIN_LOGIN_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password: password.trim() }),

@@ -1,11 +1,8 @@
 import { useEffect, useState } from "react";
 import Admin from "./Admin";
+import { BOOKS_URL } from "./apiConfig";
 
 const BOOK_IMAGE_PLACEHOLDER = "https://via.placeholder.com/150";
-
-/** Change this to your own secret before deploying. */
-const ADMIN_PASSWORD = "bookstore-admin";
-const ADMIN_SESSION_KEY = "bookstore_admin_ok";
 
 const CLASS_FILTERS = [
   "All",
@@ -53,129 +50,12 @@ function buildWhatsAppCartOrderUrl(cartBooks) {
   return `${base}?text=${encoded}`;
 }
 
-function AdminLogin({ onSuccess }) {
-  const [password, setPassword] = useState("");
-  const [denied, setDenied] = useState(false);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem(ADMIN_SESSION_KEY, "1");
-      setDenied(false);
-      onSuccess();
-    } else {
-      setDenied(true);
-    }
-  };
-
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#eaeded",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "24px",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "380px",
-          background: "#fff",
-          borderRadius: "12px",
-          border: "1px solid rgba(0,0,0,0.08)",
-          boxShadow: "0 4px 20px rgba(15,17,17,0.1)",
-          padding: "28px 24px",
-        }}
-      >
-        <h1
-          style={{
-            margin: "0 0 8px",
-            fontSize: "1.25rem",
-            fontWeight: 700,
-            color: "#0f1111",
-          }}
-        >
-          Admin
-        </h1>
-        <p style={{ margin: "0 0 20px", fontSize: "14px", color: "#565959" }}>
-          Enter password to continue.
-        </p>
-        {denied ? (
-          <p
-            style={{
-              margin: "0 0 16px",
-              fontSize: "14px",
-              fontWeight: 600,
-              color: "#b12704",
-            }}
-          >
-            Access denied
-          </p>
-        ) : null}
-        <form onSubmit={handleSubmit}>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setDenied(false);
-            }}
-            placeholder="Password"
-            autoComplete="current-password"
-            style={{
-              width: "100%",
-              padding: "11px 14px",
-              fontSize: "15px",
-              border: "1px solid #d5d9d9",
-              borderRadius: "8px",
-              boxSizing: "border-box",
-              marginBottom: "16px",
-              outline: "none",
-            }}
-          />
-          <button
-            type="submit"
-            style={{
-              width: "100%",
-              padding: "11px 16px",
-              fontSize: "14px",
-              fontWeight: 600,
-              background: "#ffd814",
-              color: "#0f1111",
-              border: "none",
-              borderRadius: "999px",
-              cursor: "pointer",
-              boxShadow: "0 2px 5px rgba(213,217,217,0.65)",
-            }}
-          >
-            Continue
-          </button>
-        </form>
-        <p style={{ margin: "20px 0 0", textAlign: "center" }}>
-          <a
-            href="#/"
-            style={{ fontSize: "14px", fontWeight: 600, color: "#007185" }}
-          >
-            ← Back to store
-          </a>
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function App() {
   const [routeHash, setRouteHash] = useState(() => window.location.hash || "#/");
   const [books, setBooks] = useState([]);
   const [cart, setCart] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedClass, setSelectedClass] = useState("All");
-  const [adminUnlocked, setAdminUnlocked] = useState(
-    () => sessionStorage.getItem(ADMIN_SESSION_KEY) === "1"
-  );
 
   useEffect(() => {
     const onHash = () => setRouteHash(window.location.hash || "#/");
@@ -186,16 +66,13 @@ function App() {
 
 
   useEffect(() => {
-    fetch("https://bookstore-backend-1-qz9s.onrender.com/books")
+    fetch(BOOKS_URL)
       .then((res) => res.json())
       .then((data) => setBooks(data))
       .catch((err) => console.log(err));
   }, []);
 
   if (routeHash === "#/admin") {
-    if (!adminUnlocked) {
-      return <AdminLogin onSuccess={() => setAdminUnlocked(true)} />;
-    }
     return <Admin />;
   }
   const addToCart = (book) => {
@@ -574,7 +451,6 @@ function App() {
       <div style={shell}>
         <header className="store-header">
           <h1>My Bookstore</h1>
-          <a href="#/admin">Admin</a>
         </header>
 
         {/* Search + class filters */}

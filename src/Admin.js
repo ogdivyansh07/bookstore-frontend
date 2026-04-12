@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-
-const API_BASE = "https://bookstore-backend-1-qz9s.onrender.com/books";
+import {
+  BOOKS_URL,
+  ADMIN_LOGIN_URL,
+  TOKEN_STORAGE_KEY,
+} from "./apiConfig";
 
 const BOOK_IMAGE_PLACEHOLDER = "https://via.placeholder.com/150";
 
@@ -28,7 +31,184 @@ const labelStyle = {
   color: "#555",
 };
 
+function AdminLoginScreen({ onSuccess, sessionExpired, onClearExpired }) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(ADMIN_LOGIN_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(
+          res.status === 401 ? "Access denied" : data.message || "Login failed"
+        );
+        return;
+      }
+      if (!data.token || typeof data.token !== "string") {
+        setError("Login failed");
+        return;
+      }
+      localStorage.setItem(TOKEN_STORAGE_KEY, data.token);
+      onSuccess(data.token);
+    } catch {
+      setError("Network error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#eaeded",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "380px",
+          background: "#fff",
+          borderRadius: "12px",
+          border: "1px solid rgba(0,0,0,0.08)",
+          boxShadow: "0 4px 20px rgba(15,17,17,0.1)",
+          padding: "28px 24px",
+        }}
+      >
+        <h1
+          style={{
+            margin: "0 0 8px",
+            fontSize: "1.25rem",
+            fontWeight: 700,
+            color: "#0f1111",
+          }}
+        >
+          Admin sign in
+        </h1>
+        <p style={{ margin: "0 0 20px", fontSize: "14px", color: "#565959" }}>
+          Enter the admin password to manage books.
+        </p>
+        {sessionExpired && !error ? (
+          <p
+            style={{
+              margin: "0 0 16px",
+              padding: "10px 14px",
+              fontSize: "14px",
+              fontWeight: 600,
+              color: "#8a6d3b",
+              background: "#fcf8e3",
+              border: "1px solid #faebcc",
+              borderRadius: "8px",
+            }}
+          >
+            Session expired, please login again
+          </p>
+        ) : null}
+        {error ? (
+          <p
+            style={{
+              margin: "0 0 16px",
+              fontSize: "14px",
+              fontWeight: 600,
+              color: "#b12704",
+            }}
+          >
+            {error}
+          </p>
+        ) : null}
+        <form onSubmit={handleSubmit}>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setError("");
+              if (onClearExpired) onClearExpired();
+            }}
+            placeholder="Password"
+            autoComplete="current-password"
+            style={{
+              width: "100%",
+              padding: "11px 14px",
+              fontSize: "15px",
+              border: "1px solid #d5d9d9",
+              borderRadius: "8px",
+              boxSizing: "border-box",
+              marginBottom: "16px",
+              outline: "none",
+            }}
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: "100%",
+              padding: "11px 16px",
+              fontSize: "14px",
+              fontWeight: 600,
+              background: loading ? "#e3e6e6" : "#ffd814",
+              color: "#0f1111",
+              border: "none",
+              borderRadius: "999px",
+              cursor: loading ? "not-allowed" : "pointer",
+              boxShadow: "0 2px 5px rgba(213,217,217,0.65)",
+            }}
+          >
+            {loading ? "Signing in…" : "Continue"}
+          </button>
+        </form>
+        <p style={{ margin: "20px 0 0", textAlign: "center" }}>
+          <a
+            href="#/"
+            style={{ fontSize: "14px", fontWeight: 600, color: "#007185" }}
+          >
+            ← Back to store
+          </a>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function isTokenExpired(jwt) {
+  if (!jwt || typeof jwt !== "string") return true;
+  try {
+    const parts = jwt.split(".");
+    if (parts.length !== 3) return true;
+    const payload = JSON.parse(atob(parts[1]));
+    if (!payload.exp) return false;
+    return Date.now() >= payload.exp * 1000;
+  } catch {
+    return true;
+  }
+}
+
 function Admin() {
+  const [token, setToken] = useState(() => {
+    const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
+    if (stored && isTokenExpired(stored)) {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      return null;
+    }
+    return stored;
+  });
+  const [sessionExpired, setSessionExpired] = useState(() => {
+    const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
+    return stored ? isTokenExpired(stored) : false;
+  });
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,11 +222,36 @@ function Admin() {
   const [image, setImage] = useState("");
   const [editingId, setEditingId] = useState(null);
 
+  const logout = useCallback(() => {
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    setToken(null);
+  }, []);
+
+  const handleSessionExpired = useCallback(() => {
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    setToken(null);
+    setSessionExpired(true);
+  }, []);
+
+  // Proactive expiry check — runs every 30 seconds
+  useEffect(() => {
+    if (!token) return;
+    const check = () => {
+      if (isTokenExpired(token)) handleSessionExpired();
+    };
+    const id = setInterval(check, 30_000);
+    return () => clearInterval(id);
+  }, [token, handleSessionExpired]);
+
   const loadBooks = useCallback(async () => {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch(API_BASE);
+      const res = await fetch(BOOKS_URL);
+      if (res.status === 401) {
+        handleSessionExpired();
+        return;
+      }
       if (!res.ok) throw new Error(`Failed to load books (${res.status})`);
       const data = await res.json();
       setBooks(Array.isArray(data) ? data : []);
@@ -56,17 +261,24 @@ function Admin() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [handleSessionExpired]);
 
   useEffect(() => {
-    loadBooks();
-  }, [loadBooks]);
+    if (token) loadBooks();
+  }, [token, loadBooks]);
 
   const handleDelete = async (id) => {
-    if (!id) return;
+    if (!id || !token) return;
     if (!window.confirm("Delete this book?")) return;
     try {
-      const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+      const res = await fetch(`${BOOKS_URL}/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 401) {
+        handleSessionExpired();
+        return;
+      }
       if (!res.ok) throw new Error(`Delete failed (${res.status})`);
       const deletedId = String(id);
       if (editingId === deletedId) {
@@ -116,6 +328,7 @@ function Admin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!token) return;
     setSubmitting(true);
     const payload = {
       title,
@@ -126,16 +339,30 @@ function Admin() {
       image,
     };
     try {
-      const url = editingId ? `${API_BASE}/${editingId}` : API_BASE;
+      const url = editingId ? `${BOOKS_URL}/${editingId}` : BOOKS_URL;
       const method = editingId ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       });
+      if (res.status === 401) {
+        handleSessionExpired();
+        return;
+      }
       if (!res.ok) {
         const text = await res.text();
-        throw new Error(text || `Save failed (${res.status})`);
+        let msg = text || `Save failed (${res.status})`;
+        try {
+          const j = JSON.parse(text);
+          if (j.message) msg = j.message;
+        } catch {
+          /* use msg */
+        }
+        throw new Error(msg);
       }
       clearForm();
       await loadBooks();
@@ -146,17 +373,56 @@ function Admin() {
     }
   };
 
+  if (!token) {
+    return (
+      <AdminLoginScreen
+        onSuccess={(t) => {
+          setSessionExpired(false);
+          setToken(t);
+        }}
+        sessionExpired={sessionExpired}
+        onClearExpired={() => setSessionExpired(false)}
+      />
+    );
+  }
+
+
   return (
     <div style={{ minHeight: "100vh", background: "#f0f2f5", padding: "24px 0 40px" }}>
       <div style={shell}>
-        <p style={{ margin: "0 0 16px" }}>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
+            marginBottom: "16px",
+          }}
+        >
           <a
             href="#/"
             style={{ color: "#0d6efd", fontSize: "14px", fontWeight: 600 }}
           >
             ← Back to bookstore
           </a>
-        </p>
+          <button
+            type="button"
+            onClick={logout}
+            style={{
+              padding: "8px 14px",
+              fontSize: "13px",
+              fontWeight: 600,
+              color: "#444",
+              background: "#fff",
+              border: "1px solid #dde1e6",
+              borderRadius: "8px",
+              cursor: "pointer",
+            }}
+          >
+            Log out
+          </button>
+        </div>
 
         <h1 style={{ margin: "0 0 20px", fontSize: "1.5rem", color: "#1a1a1a" }}>
           Admin — Books

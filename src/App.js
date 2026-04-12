@@ -62,7 +62,7 @@ function App() {
   const [selectedClass, setSelectedClass] = useState("All");
 
   useEffect(() => {
-    fetch("http://localhost:3000/books")
+    fetch("https://bookstore-backend-1-qz9s.onrender.com/books")
       .then((res) => res.json())
       .then((data) => setBooks(data))
       .catch((err) => console.log(err));

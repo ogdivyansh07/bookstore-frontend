@@ -196,19 +196,16 @@ function isTokenExpired(jwt) {
   }
 }
 
+// Compute initial auth state from a single localStorage read so both
+// useState hooks see the same snapshot (the token initializer removes
+// the key, which would cause sessionExpired to always read null).
+const _initStored = localStorage.getItem(TOKEN_STORAGE_KEY);
+const _initExpired = _initStored ? isTokenExpired(_initStored) : false;
+if (_initStored && _initExpired) localStorage.removeItem(TOKEN_STORAGE_KEY);
+
 function Admin() {
-  const [token, setToken] = useState(() => {
-    const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
-    if (stored && isTokenExpired(stored)) {
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
-      return null;
-    }
-    return stored;
-  });
-  const [sessionExpired, setSessionExpired] = useState(() => {
-    const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
-    return stored ? isTokenExpired(stored) : false;
-  });
+  const [token, setToken] = useState(_initExpired ? null : _initStored);
+  const [sessionExpired, setSessionExpired] = useState(_initExpired);
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

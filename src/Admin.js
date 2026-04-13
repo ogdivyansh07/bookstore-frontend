@@ -263,12 +263,21 @@ function Admin() {
   const [statusUpdatingId, setStatusUpdatingId] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
 
+  const [categories, setCategories] = useState([
+    "General",
+    "Fiction",
+    "Programming",
+    "Science",
+  ]);
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
+
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [price, setPrice] = useState("");
   const [bookClass, setBookClass] = useState("");
   const [subject, setSubject] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState("General");
   const [image, setImage] = useState("");
   const [editingId, setEditingId] = useState(null);
 
@@ -409,7 +418,7 @@ function Admin() {
         setPrice("");
         setBookClass("");
         setSubject("");
-        setCategory("");
+        setCategory("General");
         setImage("");
       }
       await loadBooks();
@@ -428,7 +437,8 @@ function Admin() {
     );
     setBookClass(book.class ?? "");
     setSubject(book.subject ?? "");
-    setCategory(book.category ?? "");
+    const cat = book.category;
+    setCategory(categories.includes(cat) ? cat : "General");
     setImage(book.image ?? "");
   };
 
@@ -446,22 +456,36 @@ function Admin() {
     setPrice("");
     setBookClass("");
     setSubject("");
-    setCategory("");
+    setCategory("General");
+    setShowNewCategoryInput(false);
+    setNewCategory("");
     setImage("");
+  };
+
+  const handleAddCategory = () => {
+    const trimmed = newCategory.trim();
+    if (!trimmed) return;
+
+    if (!categories.includes(trimmed)) {
+      setCategories((prev) => [...prev, trimmed]);
+    }
+
+    setCategory(trimmed);
+    setNewCategory("");
+    setShowNewCategoryInput(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!token) return;
     setSubmitting(true);
-    const catTrim = typeof category === "string" ? category.trim() : "";
     const payload = {
       title,
       author,
       price: price === "" ? undefined : Number(price),
       class: bookClass,
       subject,
-      category: catTrim || "General",
+      category: category || "General",
       image,
     };
     try {
@@ -864,13 +888,83 @@ function Admin() {
             </div>
             <div style={{ marginBottom: "12px" }}>
               <label style={labelStyle}>Category</label>
-              <input
-                type="text"
+              <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                placeholder="Category (e.g. Fiction)"
-                style={inputStyle}
-              />
+                style={{ ...inputStyle, maxWidth: "400px", display: "block" }}
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+              <div style={{ marginTop: "10px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                {!showNewCategoryInput ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowNewCategoryInput(true)}
+                    style={{
+                      padding: "8px 14px",
+                      background: "#fff",
+                      color: "#0f766e",
+                      border: "1px solid #99f6e4",
+                      borderRadius: "10px",
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    + Add Category
+                  </button>
+                ) : null}
+
+                {showNewCategoryInput ? (
+                  <>
+                    <input
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      placeholder="Enter new category"
+                      style={{ ...inputStyle, maxWidth: "260px" }}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCategory}
+                      style={{
+                        padding: "8px 14px",
+                        background: "#0f766e",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "10px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowNewCategoryInput(false);
+                        setNewCategory("");
+                      }}
+                      style={{
+                        padding: "8px 14px",
+                        background: "#fff",
+                        color: "#475569",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "10px",
+                        fontSize: "13px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : null}
+              </div>
             </div>
             <div style={{ marginBottom: "16px" }}>
               <label style={labelStyle}>Image URL</label>

@@ -9,27 +9,28 @@ import {
 const BOOK_IMAGE_PLACEHOLDER = "https://via.placeholder.com/150";
 
 const shell = {
-  maxWidth: "720px",
+  maxWidth: "920px",
   margin: "0 auto",
-  padding: "0 20px",
+  padding: "0 clamp(16px, 4vw, 28px)",
 };
 
 const inputStyle = {
   width: "100%",
   maxWidth: "400px",
-  padding: "8px 10px",
+  padding: "10px 12px",
   fontSize: "15px",
-  border: "1px solid #dde1e6",
-  borderRadius: "6px",
+  border: "1px solid #e2e8f0",
+  borderRadius: "10px",
   boxSizing: "border-box",
 };
 
 const labelStyle = {
   display: "block",
-  marginBottom: "4px",
+  marginBottom: "6px",
   fontSize: "13px",
   fontWeight: 600,
-  color: "#555",
+  color: "#64748b",
+  letterSpacing: "0.02em",
 };
 
 function orderEffectiveStatus(order) {
@@ -40,19 +41,19 @@ function orderEffectiveStatus(order) {
 function orderStatusBadgeStyle(status) {
   const styles = {
     pending: {
-      background: "#fff3cd",
-      color: "#856404",
-      border: "1px solid #ffc107",
+      background: "#fef9c3",
+      color: "#854d0e",
+      border: "1px solid #fde047",
     },
     confirmed: {
-      background: "#cfe2ff",
-      color: "#084298",
-      border: "1px solid #6ea8fe",
+      background: "#dbeafe",
+      color: "#1e40af",
+      border: "1px solid #93c5fd",
     },
     delivered: {
-      background: "#d1e7dd",
-      color: "#0f5132",
-      border: "1px solid #75b798",
+      background: "#d1fae5",
+      color: "#065f46",
+      border: "1px solid #6ee7b7",
     },
   };
   return styles[status] || styles.pending;
@@ -199,15 +200,17 @@ function AdminLoginScreen({ onSuccess, sessionExpired, onClearExpired }) {
             disabled={loading}
             style={{
               width: "100%",
-              padding: "11px 16px",
+              padding: "12px 16px",
               fontSize: "14px",
               fontWeight: 600,
-              background: loading ? "#e3e6e6" : "#ffd814",
-              color: "#0f1111",
+              background: loading ? "#e2e8f0" : "#0f766e",
+              color: "#fff",
               border: "none",
-              borderRadius: "999px",
+              borderRadius: "10px",
               cursor: loading ? "not-allowed" : "pointer",
-              boxShadow: "0 2px 5px rgba(213,217,217,0.65)",
+              boxShadow: loading
+                ? "none"
+                : "0 2px 8px rgba(15, 118, 110, 0.35)",
             }}
           >
             {loading ? "Signing in…" : "Continue"}
@@ -216,7 +219,7 @@ function AdminLoginScreen({ onSuccess, sessionExpired, onClearExpired }) {
         <p style={{ margin: "20px 0 0", textAlign: "center" }}>
           <a
             href="#/"
-            style={{ fontSize: "14px", fontWeight: 600, color: "#007185" }}
+            style={{ fontSize: "14px", fontWeight: 600, color: "#0f766e" }}
           >
             ← Back to store
           </a>
@@ -505,7 +508,34 @@ function Admin() {
 
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f0f2f5", padding: "24px 0 40px" }}>
+    <div
+      className="admin-app"
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(180deg, #f0fdfa 0%, #f1f5f4 50%, #f8fafc 100%)",
+        padding: "28px 0 48px",
+        fontFamily:
+          'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      }}
+    >
+      <style>{`
+        .admin-app .admin-order-card {
+          padding: 20px 22px;
+          margin: 0;
+          background: #fff;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          border-radius: 12px;
+          box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+        }
+        .admin-app .admin-orders-list {
+          margin: 0;
+          padding: 0;
+          list-style: none;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+      `}</style>
       <div style={shell}>
         <div
           style={{
@@ -519,7 +549,7 @@ function Admin() {
         >
           <a
             href="#/"
-            style={{ color: "#0d6efd", fontSize: "14px", fontWeight: 600 }}
+            style={{ color: "#0f766e", fontSize: "14px", fontWeight: 600 }}
           >
             ← Back to bookstore
           </a>
@@ -527,14 +557,16 @@ function Admin() {
             type="button"
             onClick={logout}
             style={{
-              padding: "8px 14px",
+              padding: "9px 16px",
               fontSize: "13px",
               fontWeight: 600,
-              color: "#444",
+              color: "#475569",
               background: "#fff",
-              border: "1px solid #dde1e6",
-              borderRadius: "8px",
+              border: "1px solid #e2e8f0",
+              borderRadius: "10px",
               cursor: "pointer",
+              boxShadow: "0 1px 3px rgba(15, 23, 42, 0.06)",
+              transition: "transform 0.15s ease, box-shadow 0.2s ease",
             }}
           >
             Log out
@@ -553,14 +585,21 @@ function Admin() {
             type="button"
             onClick={() => setAdminTab("books")}
             style={{
-              padding: "10px 18px",
+              padding: "10px 20px",
               fontSize: "14px",
               fontWeight: 600,
-              borderRadius: "8px",
-              border: adminTab === "books" ? "2px solid #0d6efd" : "1px solid #dde1e6",
-              background: adminTab === "books" ? "#e7f1ff" : "#fff",
-              color: "#1a1a1a",
+              borderRadius: "10px",
+              border:
+                adminTab === "books"
+                  ? "2px solid #0f766e"
+                  : "1px solid #e2e8f0",
+              background: adminTab === "books" ? "#ecfdf5" : "#fff",
+              color: "#0f172a",
               cursor: "pointer",
+              boxShadow:
+                adminTab === "books"
+                  ? "0 2px 8px rgba(15, 118, 110, 0.12)"
+                  : "none",
             }}
           >
             Books
@@ -569,31 +608,47 @@ function Admin() {
             type="button"
             onClick={() => setAdminTab("orders")}
             style={{
-              padding: "10px 18px",
+              padding: "10px 20px",
               fontSize: "14px",
               fontWeight: 600,
-              borderRadius: "8px",
-              border: adminTab === "orders" ? "2px solid #0d6efd" : "1px solid #dde1e6",
-              background: adminTab === "orders" ? "#e7f1ff" : "#fff",
-              color: "#1a1a1a",
+              borderRadius: "10px",
+              border:
+                adminTab === "orders"
+                  ? "2px solid #0f766e"
+                  : "1px solid #e2e8f0",
+              background: adminTab === "orders" ? "#ecfdf5" : "#fff",
+              color: "#0f172a",
               cursor: "pointer",
+              boxShadow:
+                adminTab === "orders"
+                  ? "0 2px 8px rgba(15, 118, 110, 0.12)"
+                  : "none",
             }}
           >
             Orders
           </button>
         </div>
 
-        <h1 style={{ margin: "0 0 20px", fontSize: "1.5rem", color: "#1a1a1a" }}>
+        <h1
+          style={{
+            margin: "0 0 24px",
+            fontSize: "clamp(1.35rem, 3vw, 1.75rem)",
+            fontWeight: 700,
+            color: "#0f172a",
+            letterSpacing: "-0.02em",
+          }}
+        >
           {adminTab === "books" ? "Admin — Books" : "Admin — Orders"}
         </h1>
 
         {adminTab === "orders" ? (
           <section
             style={{
-              padding: "18px 20px",
+              padding: "24px 26px",
               background: "#fff",
               borderRadius: "12px",
-              boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+              border: "1px solid rgba(15, 23, 42, 0.06)",
+              boxShadow: "0 4px 16px rgba(15, 23, 42, 0.06)",
             }}
           >
             {ordersLoading && (
@@ -627,34 +682,40 @@ function Admin() {
                     No orders match this filter.
                   </p>
                 ) : (
-              <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+              <ul className="admin-orders-list">
                 {filteredOrders.map((order) => (
                   <li
                     key={order._id}
+                    className="admin-order-card"
                     style={{
-                      padding: "16px 0",
-                      borderBottom: "1px solid #eee",
                       fontSize: "14px",
-                      color: "#333",
+                      color: "#334155",
                     }}
                   >
-                    <p style={{ margin: "0 0 8px", fontWeight: 700 }}>
+                    <p style={{ margin: "0 0 10px", fontWeight: 700, color: "#0f172a" }}>
                       {order.customerName}{" "}
-                      <span style={{ fontWeight: 400, color: "#666" }}>
+                      <span style={{ fontWeight: 500, color: "#64748b" }}>
                         — {order.phone}
                       </span>
                     </p>
-                    <p style={{ margin: "0 0 8px", color: "#555", whiteSpace: "pre-wrap" }}>
+                    <p
+                      style={{
+                        margin: "0 0 14px",
+                        color: "#475569",
+                        whiteSpace: "pre-wrap",
+                        lineHeight: 1.5,
+                      }}
+                    >
                       {order.address}
                     </p>
-                    <div style={{ marginBottom: "12px" }}>
+                    <div style={{ marginBottom: "14px" }}>
                       <div
                         style={{
                           display: "flex",
                           flexWrap: "wrap",
                           alignItems: "center",
-                          gap: "8px",
-                          marginBottom: "6px",
+                          gap: "10px",
+                          marginBottom: "8px",
                         }}
                       >
                         <label style={{ ...labelStyle, marginBottom: 0 }}>
@@ -665,7 +726,7 @@ function Admin() {
                             fontSize: "12px",
                             fontWeight: 700,
                             textTransform: "capitalize",
-                            padding: "3px 10px",
+                            padding: "6px 12px",
                             borderRadius: "999px",
                             ...orderStatusBadgeStyle(orderEffectiveStatus(order)),
                           }}
@@ -691,10 +752,10 @@ function Admin() {
                         <option value="delivered">Delivered</option>
                       </select>
                     </div>
-                    <p style={{ margin: "0 0 6px", color: "#666" }}>
-                      <strong>Books:</strong>
+                    <p style={{ margin: "0 0 8px", color: "#64748b", fontWeight: 600 }}>
+                      Books
                     </p>
-                    <ul style={{ margin: "0 0 10px", paddingLeft: "18px" }}>
+                    <ul style={{ margin: "0 0 12px", paddingLeft: "20px", color: "#334155" }}>
                       {(order.books || []).map((b, i) => (
                         <li key={i} style={{ marginBottom: "4px" }}>
                           {(b && b.title) || "Book"}{" "}
@@ -704,10 +765,10 @@ function Admin() {
                         </li>
                       ))}
                     </ul>
-                    <p style={{ margin: 0, fontWeight: 600 }}>
+                    <p style={{ margin: "0 0 6px", fontWeight: 700, color: "#0f172a" }}>
                       Total: ₹{order.totalPrice}
                     </p>
-                    <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#888" }}>
+                    <p style={{ margin: 0, fontSize: "13px", color: "#94a3b8" }}>
                       {order.createdAt
                         ? new Date(order.createdAt).toLocaleString()
                         : ""}
@@ -725,14 +786,23 @@ function Admin() {
         <>
         <section
           style={{
-            marginBottom: "28px",
-            padding: "18px 20px",
+            marginBottom: "24px",
+            padding: "24px 26px",
             background: "#fff",
             borderRadius: "12px",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+            border: "1px solid rgba(15, 23, 42, 0.06)",
+            boxShadow: "0 4px 16px rgba(15, 23, 42, 0.06)",
           }}
         >
-          <h2 style={{ margin: "0 0 14px", fontSize: "17px", color: "#333" }}>
+          <h2
+            style={{
+              margin: "0 0 18px",
+              fontSize: "1.1rem",
+              fontWeight: 700,
+              color: "#0f172a",
+              letterSpacing: "-0.02em",
+            }}
+          >
             {editingId ? "Edit book" : "Add book"}
           </h2>
           <form onSubmit={handleSubmit}>
@@ -813,14 +883,17 @@ function Admin() {
                 type="submit"
                 disabled={submitting}
                 style={{
-                  padding: "10px 18px",
-                  background: submitting ? "#9ec5fe" : "#0d6efd",
+                  padding: "10px 20px",
+                  background: submitting ? "#99f6e4" : "#0f766e",
                   color: "#fff",
                   border: "none",
-                  borderRadius: "8px",
+                  borderRadius: "10px",
                   fontSize: "14px",
                   fontWeight: 600,
                   cursor: submitting ? "not-allowed" : "pointer",
+                  boxShadow: submitting
+                    ? "none"
+                    : "0 2px 8px rgba(15, 118, 110, 0.35)",
                 }}
               >
                 {submitting
@@ -856,13 +929,22 @@ function Admin() {
 
         <section
           style={{
-            padding: "18px 20px",
+            padding: "24px 26px",
             background: "#fff",
             borderRadius: "12px",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+            border: "1px solid rgba(15, 23, 42, 0.06)",
+            boxShadow: "0 4px 16px rgba(15, 23, 42, 0.06)",
           }}
         >
-          <h2 style={{ margin: "0 0 14px", fontSize: "17px", color: "#333" }}>
+          <h2
+            style={{
+              margin: "0 0 18px",
+              fontSize: "1.1rem",
+              fontWeight: 700,
+              color: "#0f172a",
+              letterSpacing: "-0.02em",
+            }}
+          >
             All books
           </h2>
           {loading && <p style={{ color: "#666", margin: 0 }}>Loading…</p>}
@@ -935,11 +1017,11 @@ function Admin() {
                       type="button"
                       onClick={() => handleEdit(book)}
                       style={{
-                        padding: "6px 12px",
+                        padding: "7px 14px",
                         background: "#fff",
-                        color: "#0d6efd",
-                        border: "1px solid #b6d4fe",
-                        borderRadius: "8px",
+                        color: "#0f766e",
+                        border: "1px solid #99f6e4",
+                        borderRadius: "10px",
                         fontSize: "13px",
                         fontWeight: 600,
                         cursor: "pointer",

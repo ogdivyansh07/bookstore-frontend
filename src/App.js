@@ -33,6 +33,13 @@ function formatOrderStatusLabel(status) {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 }
 
+function trackStatusPillClass(status) {
+  const s = (typeof status === "string" ? status : "pending").toLowerCase();
+  if (s === "confirmed") return "store-status-pill store-status-pill--confirmed";
+  if (s === "delivered") return "store-status-pill store-status-pill--delivered";
+  return "store-status-pill store-status-pill--pending";
+}
+
 function normalizeIndianPhone(value) {
   return String(value ?? "").replace(/\D/g, "").slice(-10);
 }
@@ -215,18 +222,24 @@ function App() {
   });
 
   const shell = {
-    maxWidth: "1280px",
+    maxWidth: "1200px",
     margin: "0 auto",
-    padding: "0 24px",
+    padding: "0 clamp(16px, 4vw, 28px)",
   };
 
   return (
     <div className="store-root">
       <style>{`
         .store-root {
+          --store-primary: #0f766e;
+          --store-primary-hover: #0d9488;
+          --store-primary-dark: #115e59;
+          --store-muted: #64748b;
+          --store-text: #0f172a;
+          font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
           min-height: 100vh;
-          background: #eaeded;
-          padding: 28px 0 48px;
+          background: linear-gradient(180deg, #f0fdfa 0%, #f1f5f4 45%, #ecfdf5 100%);
+          padding: 32px 0 56px;
         }
         @keyframes store-fade-up {
           from {
@@ -239,12 +252,12 @@ function App() {
           }
         }
         .store-panel {
-          margin-bottom: 20px;
-          padding: 22px 24px;
+          margin-bottom: 28px;
+          padding: 24px 28px;
           background: #fff;
           border-radius: 12px;
-          border: 1px solid rgba(0, 0, 0, 0.06);
-          box-shadow: 0 2px 8px rgba(15, 17, 17, 0.06);
+          border: 1px solid rgba(15, 23, 42, 0.06);
+          box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
         }
         .store-header {
           display: flex;
@@ -252,16 +265,17 @@ function App() {
           align-items: baseline;
           justify-content: space-between;
           gap: 12px 20px;
-          margin-bottom: 24px;
-          padding-bottom: 18px;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+          margin-bottom: 32px;
+          padding-bottom: 22px;
+          border-bottom: 1px solid rgba(15, 23, 42, 0.08);
         }
         .store-header h1 {
           margin: 0;
-          font-size: clamp(1.35rem, 3.5vw, 1.85rem);
+          font-size: clamp(1.65rem, 4vw, 2.15rem);
           font-weight: 700;
-          color: #0f1111;
-          letter-spacing: -0.02em;
+          color: var(--store-text);
+          letter-spacing: -0.03em;
+          line-height: 1.2;
         }
         .store-header a {
           font-size: 14px;
@@ -278,10 +292,23 @@ function App() {
         }
         .store-label {
           display: block;
-          margin-bottom: 8px;
+          margin-bottom: 10px;
           font-size: 13px;
           font-weight: 600;
-          color: #565959;
+          letter-spacing: 0.02em;
+          color: var(--store-muted);
+        }
+        .store-section-title {
+          margin: 0 0 16px;
+          font-size: clamp(1.1rem, 2.5vw, 1.25rem);
+          font-weight: 700;
+          color: var(--store-text);
+          letter-spacing: -0.02em;
+        }
+        .store-muted-text {
+          color: var(--store-muted);
+          font-size: 14px;
+          line-height: 1.55;
         }
         .store-search {
           width: 100%;
@@ -295,8 +322,8 @@ function App() {
           transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
         .store-search:focus {
-          border-color: #007185;
-          box-shadow: 0 0 0 3px rgba(0, 113, 133, 0.15);
+          border-color: var(--store-primary);
+          box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.18);
         }
         .store-search::placeholder {
           color: #888;
@@ -324,14 +351,14 @@ function App() {
           transform: translateY(0);
         }
         .filter-chip-active {
-          border: 2px solid #007185;
-          background: #edfdff;
-          color: #007185;
+          border: 2px solid var(--store-primary);
+          background: #ecfdf5;
+          color: var(--store-primary-dark);
         }
         .filter-chip-inactive {
-          border: 2px solid #d5d9d9;
+          border: 2px solid #e2e8f0;
           background: #fff;
-          color: #565959;
+          color: #64748b;
         }
         .cart-toolbar {
           display: flex;
@@ -345,13 +372,14 @@ function App() {
         }
         .cart-toolbar h2 {
           margin: 0;
-          font-size: 18px;
-          font-weight: 600;
-          color: #0f1111;
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: var(--store-text);
+          letter-spacing: -0.02em;
         }
         .cart-toolbar .muted {
-          font-weight: 400;
-          color: #565959;
+          font-weight: 500;
+          color: var(--store-muted);
           font-size: 15px;
         }
         .cart-actions {
@@ -364,11 +392,11 @@ function App() {
           font-family: inherit;
           font-size: 14px;
           font-weight: 600;
-          border-radius: 999px;
-          padding: 9px 18px;
+          border-radius: 10px;
+          padding: 10px 20px;
           cursor: pointer;
           border: none;
-          transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+          transition: transform 0.18s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
         }
         .store-btn:disabled {
           cursor: not-allowed;
@@ -379,13 +407,15 @@ function App() {
         }
         .store-btn-ghost {
           background: #fff;
-          color: #b12704;
-          border: 1px solid #d5d9d9;
-          box-shadow: 0 1px 2px rgba(15, 17, 17, 0.06);
+          color: #b45309;
+          border: 1px solid #e2e8f0;
+          box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
         }
         .store-btn-ghost:hover:not(:disabled) {
-          background: #fef8f7;
-          border-color: #c45500;
+          background: #fffbeb;
+          border-color: #fcd34d;
+          transform: scale(1.02);
+          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
         }
         .store-btn-ghost:disabled {
           color: #a2a9ad;
@@ -394,39 +424,41 @@ function App() {
         }
         .store-btn-cart {
           width: 100%;
-          padding: 11px 16px;
-          background: #ffd814;
-          color: #0f1111;
+          padding: 12px 16px;
+          background: var(--store-primary);
+          color: #fff;
           border: none;
-          border-radius: 999px;
-          box-shadow: 0 2px 5px rgba(213, 217, 217, 0.65);
+          border-radius: 10px;
+          box-shadow: 0 2px 8px rgba(15, 118, 110, 0.35);
         }
-        .store-btn-cart:hover {
-          background: #f7ca00;
-          box-shadow: 0 4px 10px rgba(213, 217, 217, 0.85);
+        .store-btn-cart:hover:not(:disabled) {
+          background: var(--store-primary-hover);
+          transform: scale(1.02);
+          box-shadow: 0 6px 16px rgba(15, 118, 110, 0.4);
         }
         .store-btn-wa {
           display: block;
           width: 100%;
-          padding: 11px 16px;
+          padding: 12px 16px;
           text-align: center;
           text-decoration: none;
           box-sizing: border-box;
-          background: #25d366;
+          background: #16a34a;
           color: #fff;
-          border-radius: 999px;
+          border-radius: 10px;
           font-size: 14px;
           font-weight: 600;
           border: none;
-          box-shadow: 0 2px 6px rgba(37, 211, 102, 0.25);
-          transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+          box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+          transition: transform 0.18s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
         .store-btn-wa:hover {
-          background: #20bd5a;
-          box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+          background: #15803d;
+          transform: scale(1.02);
+          box-shadow: 0 6px 16px rgba(22, 163, 74, 0.35);
         }
         .store-btn-wa:active {
-          transform: scale(0.99);
+          transform: scale(0.98);
         }
         .store-btn-wa-inline {
           display: inline-block;
@@ -481,78 +513,80 @@ function App() {
         }
         .book-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(min(100%, 268px), 1fr));
-          gap: 20px 22px;
+          grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+          gap: 24px;
           align-items: stretch;
         }
         .book-card {
           display: flex;
           flex-direction: column;
           background: #fff;
-          padding: 0;
+          padding: 12px;
           overflow: hidden;
           border-radius: 12px;
-          border: 1px solid rgba(0, 0, 0, 0.06);
-          box-shadow: 0 2px 8px rgba(15, 17, 17, 0.08);
+          border: 1px solid rgba(15, 23, 42, 0.07);
+          box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
           transition: transform 0.28s cubic-bezier(0.25, 0.8, 0.25, 1),
             box-shadow 0.28s cubic-bezier(0.25, 0.8, 0.25, 1),
             border-color 0.25s ease;
           animation: store-fade-up 0.45s ease backwards;
         }
         .book-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 12px 28px rgba(15, 17, 17, 0.12);
-          border-color: rgba(0, 113, 133, 0.2);
+          transform: translateY(-6px) scale(1.02);
+          box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+          border-color: rgba(15, 118, 110, 0.25);
         }
         .book-card-media {
           position: relative;
-          padding: 16px 16px 0;
-          background: linear-gradient(180deg, #f7f8f8 0%, #fff 100%);
+          padding: 8px 8px 0;
+          background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+          border-radius: 10px;
         }
         .book-card-media img {
           width: 100%;
           height: 150px;
           object-fit: cover;
-          border-radius: 8px;
+          border-radius: 10px;
           display: block;
-          background: #e3e6e6;
+          background: #e2e8f0;
           transition: transform 0.35s ease;
         }
         .book-card:hover .book-card-media img {
-          transform: scale(1.02);
+          transform: scale(1.03);
         }
         .book-card-body {
           display: flex;
           flex-direction: column;
-          gap: 10px;
-          padding: 16px 18px 20px;
+          gap: 12px;
+          padding: 18px 10px 14px;
           flex: 1;
         }
         .book-card-body h3 {
           margin: 0;
-          font-size: 16px;
-          font-weight: 600;
-          color: #0f1111;
-          line-height: 1.4;
-          letter-spacing: -0.01em;
+          font-size: 1.05rem;
+          font-weight: 700;
+          color: var(--store-text);
+          line-height: 1.45;
+          letter-spacing: -0.02em;
         }
         .book-card-meta {
           margin: 0;
           font-size: 13px;
-          color: #565959;
+          color: var(--store-muted);
+          line-height: 1.4;
         }
         .book-card-price {
           margin: 0;
-          font-size: 17px;
+          font-size: 1.15rem;
           font-weight: 700;
-          color: #0f1111;
+          color: var(--store-primary-dark);
         }
         .book-card-actions {
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 12px;
           margin-top: auto;
-          padding-top: 8px;
+          padding-top: 4px;
         }
         .store-empty-hint {
           text-align: center;
@@ -582,13 +616,14 @@ function App() {
           color: #b12704;
         }
         .store-btn-primary {
-          background: #007185;
+          background: var(--store-primary);
           color: #fff;
-          box-shadow: 0 2px 6px rgba(0, 113, 133, 0.25);
+          box-shadow: 0 2px 8px rgba(15, 118, 110, 0.35);
         }
         .store-btn-primary:hover:not(:disabled) {
-          background: #005f6f;
-          box-shadow: 0 4px 12px rgba(0, 113, 133, 0.3);
+          background: var(--store-primary-hover);
+          transform: scale(1.02);
+          box-shadow: 0 6px 16px rgba(15, 118, 110, 0.4);
         }
         .store-track-row {
           display: flex;
@@ -598,16 +633,41 @@ function App() {
           margin-bottom: 16px;
         }
         .store-track-card {
-          margin-top: 14px;
-          padding: 14px 16px;
-          background: #f7f8f8;
-          border-radius: 10px;
-          border: 1px solid #e3e6e6;
+          margin-top: 16px;
+          padding: 20px 22px;
+          background: #fff;
+          border-radius: 12px;
+          border: 1px solid rgba(15, 23, 42, 0.08);
+          box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
           font-size: 14px;
-          color: #0f1111;
+          color: var(--store-text);
         }
         .store-track-card + .store-track-card {
-          margin-top: 12px;
+          margin-top: 14px;
+        }
+        .store-status-pill {
+          display: inline-block;
+          padding: 6px 12px;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.02em;
+          text-transform: capitalize;
+        }
+        .store-status-pill--pending {
+          background: #fef9c3;
+          color: #854d0e;
+          border: 1px solid #fde047;
+        }
+        .store-status-pill--confirmed {
+          background: #dbeafe;
+          color: #1e40af;
+          border: 1px solid #93c5fd;
+        }
+        .store-status-pill--delivered {
+          background: #d1fae5;
+          color: #065f46;
+          border: 1px solid #6ee7b7;
         }
       `}</style>
       <div style={shell}>
@@ -824,20 +884,11 @@ function App() {
 
         {/* Track order */}
         <div className="store-panel" style={{ marginBottom: "28px" }}>
-          <h2
-            style={{
-              margin: "0 0 14px",
-              fontSize: "18px",
-              fontWeight: 600,
-              color: "#0f1111",
-            }}
-          >
-            Track order
-          </h2>
-          <p style={{ margin: "0 0 14px", fontSize: "14px", color: "#565959" }}>
+          <h2 className="store-section-title">Track order</h2>
+          <p className="store-muted-text" style={{ margin: "0 0 12px" }}>
             Enter the phone number from your order to see status and details.
           </p>
-          <p style={{ margin: "0 0 10px", fontSize: "13px", color: "#767676" }}>
+          <p className="store-muted-text" style={{ margin: "0 0 16px", fontSize: "13px" }}>
             Supports formats like +91, spaces, dashes (10-digit Indian mobile).
           </p>
           <div className="store-track-row">
@@ -876,10 +927,21 @@ function App() {
           {trackedOrders && trackedOrders.length > 0
             ? trackedOrders.map((order) => (
                 <div key={order._id} className="store-track-card">
-                  <p style={{ margin: "0 0 8px", fontWeight: 600 }}>
-                    Status: {formatOrderStatusLabel(order.status)}
+                  <p
+                    style={{
+                      margin: "0 0 14px",
+                      display: "flex",
+                      flexWrap: "wrap",
+                      alignItems: "center",
+                      gap: "10px",
+                    }}
+                  >
+                    <span style={{ fontWeight: 600, color: "#334155" }}>Status</span>
+                    <span className={trackStatusPillClass(order.status)}>
+                      {formatOrderStatusLabel(order.status)}
+                    </span>
                   </p>
-                  <p style={{ margin: "0 0 8px", color: "#565959", fontSize: "13px" }}>
+                  <p style={{ margin: "0 0 12px", color: "#64748b", fontSize: "13px" }}>
                     {order.createdAt
                       ? new Date(order.createdAt).toLocaleString()
                       : ""}

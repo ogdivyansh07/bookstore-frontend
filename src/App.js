@@ -68,7 +68,6 @@ function App() {
   const [orderError, setOrderError] = useState("");
   const [orderSuccess, setOrderSuccess] = useState("");
   const [search, setSearch] = useState("");
-  const [selectedClass, setSelectedClass] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [trackPhone, setTrackPhone] = useState("");
   const [trackedOrders, setTrackedOrders] = useState(null);
@@ -194,20 +193,6 @@ function App() {
     }
   };
 
-  const query = search.trim().toLowerCase();
-
-  const classes = [
-    "All",
-    ...Array.from(
-      new Set(
-        books
-          .map((book) => book.class)
-          .filter((v) => typeof v === "string" && v.trim())
-          .map((v) => v.trim())
-      )
-    ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })),
-  ];
-
   const categories = [
     "All",
     ...Array.from(
@@ -216,17 +201,15 @@ function App() {
   ];
 
   const filteredBooks = books.filter((book) => {
-    const matchesClass =
-      selectedClass === "All" || (book.class || "") === selectedClass;
-    if (!matchesClass) return false;
+    const normalizedSearch = search.toLowerCase();
+    const matchesSearch =
+      (book.title || "").toLowerCase().includes(normalizedSearch) ||
+      (book.author || "").toLowerCase().includes(normalizedSearch);
     const matchesCategory =
       selectedCategory === "All" ||
       (book.category || "General") === selectedCategory;
-    if (!matchesCategory) return false;
-    if (!query) return true;
-    const title = (book.title || "").toLowerCase();
-    const author = (book.author || "").toLowerCase();
-    return title.includes(query) || author.includes(query);
+
+    return matchesSearch && matchesCategory;
   });
 
   const groupedBooks = filteredBooks.reduce((acc, book) => {
@@ -368,16 +351,6 @@ function App() {
         }
         .filter-chip:active {
           transform: translateY(0);
-        }
-        .filter-chip-active {
-          border: 2px solid var(--store-primary);
-          background: #ecfdf5;
-          color: var(--store-primary-dark);
-        }
-        .filter-chip-inactive {
-          border: 2px solid #e2e8f0;
-          background: #fff;
-          color: #64748b;
         }
         .category-chip-active {
           border: 2px solid #2563eb;
@@ -720,7 +693,7 @@ function App() {
           <h1>My Bookstore</h1>
         </header>
 
-        {/* Search + class filters */}
+        {/* Search + category filters */}
         <div className="store-panel">
           <label className="store-label" htmlFor="store-search-input">
             Search
@@ -733,28 +706,6 @@ function App() {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by title or author"
           />
-
-          <p className="store-label" style={{ marginTop: "18px", marginBottom: "8px" }}>
-            Class
-          </p>
-          <div className="filter-row">
-            {classes.map((label) => {
-              const active = selectedClass === label;
-              return (
-                <button
-                  key={label}
-                  type="button"
-                  onClick={() => setSelectedClass(label)}
-                  className={
-                    "filter-chip " +
-                    (active ? "filter-chip-active" : "filter-chip-inactive")
-                  }
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
 
           <p className="store-label" style={{ marginTop: "18px", marginBottom: "8px" }}>
             Category
@@ -1091,7 +1042,7 @@ function App() {
 
         {filteredBooks.length === 0 && books.length > 0 && (
           <p className="store-empty-hint">
-            No books match your search or class filter.
+            No books match your search or category filter.
           </p>
         )}
       </div>

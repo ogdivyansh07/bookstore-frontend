@@ -275,7 +275,6 @@ function Admin() {
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [price, setPrice] = useState("");
-  const [bookClass, setBookClass] = useState("");
   const [subject, setSubject] = useState("");
   const [category, setCategory] = useState("General");
   const [image, setImage] = useState("");
@@ -416,7 +415,6 @@ function Admin() {
         setTitle("");
         setAuthor("");
         setPrice("");
-        setBookClass("");
         setSubject("");
         setCategory("General");
         setImage("");
@@ -435,7 +433,6 @@ function Admin() {
         ? String(book.price)
         : ""
     );
-    setBookClass(book.class ?? "");
     setSubject(book.subject ?? "");
     const cat = book.category;
     setCategory(categories.includes(cat) ? cat : "General");
@@ -454,7 +451,6 @@ function Admin() {
     setTitle("");
     setAuthor("");
     setPrice("");
-    setBookClass("");
     setSubject("");
     setCategory("General");
     setShowNewCategoryInput(false);
@@ -483,7 +479,6 @@ function Admin() {
       title,
       author,
       price: price === "" ? undefined : Number(price),
-      class: bookClass,
       subject,
       category: category || "General",
       image,
@@ -868,16 +863,6 @@ function Admin() {
               />
             </div>
             <div style={{ marginBottom: "12px" }}>
-              <label style={labelStyle}>Class</label>
-              <input
-                type="text"
-                value={bookClass}
-                onChange={(e) => setBookClass(e.target.value)}
-                placeholder="e.g. Class 10"
-                style={inputStyle}
-              />
-            </div>
-            <div style={{ marginBottom: "12px" }}>
               <label style={labelStyle}>Subject</label>
               <input
                 type="text"
@@ -1117,7 +1102,6 @@ function Admin() {
                         {book.price != null && book.price !== ""
                           ? ` — ₹${book.price}`
                           : ""}
-                        {book.class ? ` — ${book.class}` : ""}
                         {book.subject ? ` — ${book.subject}` : ""}
                         {` — ${book.category || "General"}`}
                       </span>

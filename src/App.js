@@ -202,18 +202,19 @@ function App() {
 
   const filteredBooks = books.filter((book) => {
     const normalizedSearch = search.toLowerCase();
+    const normalizedCategory = (book.category || "General").trim() || "General";
     const matchesSearch =
       (book.title || "").toLowerCase().includes(normalizedSearch) ||
       (book.author || "").toLowerCase().includes(normalizedSearch);
     const matchesCategory =
       selectedCategory === "All" ||
-      (book.category || "General") === selectedCategory;
+      normalizedCategory === selectedCategory;
 
     return matchesSearch && matchesCategory;
   });
 
   const groupedBooks = filteredBooks.reduce((acc, book) => {
-    const categoryName = book.category || "General";
+    const categoryName = (book.category || "General").trim() || "General";
     if (!acc[categoryName]) acc[categoryName] = [];
     acc[categoryName].push(book);
     return acc;
@@ -1042,7 +1043,7 @@ function App() {
 
         {filteredBooks.length === 0 && books.length > 0 && (
           <p className="store-empty-hint">
-            No books match your search or category filter.
+            No books found
           </p>
         )}
       </div>

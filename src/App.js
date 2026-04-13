@@ -56,11 +56,27 @@ function buildWhatsAppCartOrderUrl(cartBooks) {
   return `${base}?text=${encoded}`;
 }
 
+function Modal({ children, onClose }) {
+  return (
+    <div className="modal-overlay" role="dialog" aria-modal="true">
+      <div className="modal-box">
+        <button type="button" className="modal-close-btn" onClick={onClose}>
+          X
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [routeHash, setRouteHash] = useState(() => window.location.hash || "#/");
   const [books, setBooks] = useState([]);
   const [cart, setCart] = useState([]);
   const [showOrderForm, setShowOrderForm] = useState(false);
+  const [showCart, setShowCart] = useState(false);
+  const [showTrack, setShowTrack] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
   const [orderName, setOrderName] = useState("");
   const [orderPhone, setOrderPhone] = useState("");
   const [orderAddress, setOrderAddress] = useState("");
@@ -312,6 +328,27 @@ function App() {
           color: var(--store-muted);
           font-size: 14px;
           line-height: 1.55;
+        }
+        .store-header-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .store-header-action-btn {
+          border: 1px solid #cbd5e1;
+          background: #fff;
+          color: #334155;
+          border-radius: 999px;
+          padding: 8px 14px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.2s ease, border-color 0.2s ease, transform 0.18s ease;
+        }
+        .store-header-action-btn:hover {
+          background: #f8fafc;
+          border-color: #94a3b8;
+          transform: translateY(-1px);
         }
         .store-search {
           width: 100%;
@@ -688,10 +725,71 @@ function App() {
           color: #065f46;
           border: 1px solid #6ee7b7;
         }
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+          padding: 20px;
+          box-sizing: border-box;
+        }
+        .modal-box {
+          position: relative;
+          background: #fff;
+          padding: 20px;
+          border-radius: 10px;
+          width: 90%;
+          max-width: 720px;
+          max-height: 90vh;
+          overflow-y: auto;
+        }
+        .modal-close-btn {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          border: 1px solid #cbd5e1;
+          background: #fff;
+          color: #334155;
+          border-radius: 999px;
+          width: 30px;
+          height: 30px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+        }
       `}</style>
       <div style={shell}>
         <header className="store-header">
           <h1>My Bookstore</h1>
+          <div className="store-header-actions">
+            <button
+              type="button"
+              className="store-header-action-btn"
+              onClick={() => setShowCart(true)}
+            >
+              Cart 🛒
+            </button>
+            <button
+              type="button"
+              className="store-header-action-btn"
+              onClick={() => setShowTrack(true)}
+            >
+              Track Order 📦
+            </button>
+            <button
+              type="button"
+              className="store-header-action-btn"
+              onClick={() => setShowTerms(true)}
+            >
+              Terms 📜
+            </button>
+          </div>
         </header>
 
         {/* Search + category filters */}
@@ -729,259 +827,6 @@ function App() {
               );
             })}
           </div>
-        </div>
-
-        {/* Cart */}
-        <div className="store-panel" style={{ marginBottom: "28px" }}>
-          <div className="cart-toolbar">
-            <h2>
-              Your cart{" "}
-              <span className="muted">
-                ({cart.length} {cart.length === 1 ? "item" : "items"})
-              </span>
-            </h2>
-            <div className="cart-actions">
-              <button
-                type="button"
-                className="store-btn store-btn-ghost"
-                onClick={clearCart}
-                disabled={cart.length === 0}
-              >
-                Clear cart
-              </button>
-              {cart.length > 0 ? (
-                <a
-                  className="store-btn-wa store-btn-wa-inline"
-                  href={buildWhatsAppCartOrderUrl(cart)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Order all on WhatsApp
-                </a>
-              ) : (
-                <button type="button" disabled className="store-btn-wa-disabled">
-                  Order all on WhatsApp
-                </button>
-              )}
-              <button
-                type="button"
-                className="store-btn store-btn-primary"
-                disabled={cart.length === 0}
-                onClick={() => {
-                  setShowOrderForm((v) => !v);
-                  setOrderError("");
-                  setOrderSuccess("");
-                }}
-              >
-                {showOrderForm ? "Hide order form" : "Place order"}
-              </button>
-            </div>
-          </div>
-
-          {orderSuccess ? (
-            <p className="store-order-success" role="status">
-              {orderSuccess}
-            </p>
-          ) : null}
-
-          {showOrderForm && cart.length > 0 ? (
-            <form className="store-order-panel" onSubmit={handlePlaceOrderSubmit}>
-              <p className="store-label">Checkout</p>
-              <p style={{ margin: "0 0 14px", fontSize: "14px", color: "#565959" }}>
-                Total:{" "}
-                <strong style={{ color: "#0f1111" }}>
-                  ₹{cartTotalNumeric(cart).toFixed(2)}
-                </strong>
-              </p>
-              {orderError ? (
-                <p className="store-order-error" role="alert">
-                  {orderError}
-                </p>
-              ) : null}
-              <div style={{ marginBottom: "12px" }}>
-                <label className="store-label" htmlFor="order-name">
-                  Name
-                </label>
-                <input
-                  id="order-name"
-                  className="store-search"
-                  style={{ maxWidth: "100%" }}
-                  value={orderName}
-                  onChange={(e) => setOrderName(e.target.value)}
-                  required
-                  autoComplete="name"
-                />
-              </div>
-              <div style={{ marginBottom: "12px" }}>
-                <label className="store-label" htmlFor="order-phone">
-                  Phone
-                </label>
-                <input
-                  id="order-phone"
-                  className="store-search"
-                  style={{ maxWidth: "100%" }}
-                  type="tel"
-                  inputMode="numeric"
-                  maxLength={14}
-                  placeholder="Enter phone (e.g. 9876543210)"
-                  value={orderPhone}
-                  onChange={(e) => setOrderPhone(e.target.value)}
-                  required
-                  autoComplete="tel"
-                />
-                <p
-                  style={{
-                    margin: "6px 0 0",
-                    fontSize: "13px",
-                    color: "#767676",
-                  }}
-                >
-                  Supports formats like +91, spaces, dashes
-                </p>
-              </div>
-              <div style={{ marginBottom: "16px" }}>
-                <label className="store-label" htmlFor="order-address">
-                  Address
-                </label>
-                <textarea
-                  id="order-address"
-                  value={orderAddress}
-                  onChange={(e) => setOrderAddress(e.target.value)}
-                  required
-                  rows={3}
-                  autoComplete="street-address"
-                  style={{
-                    width: "100%",
-                    maxWidth: "100%",
-                    padding: "11px 16px",
-                    fontSize: "15px",
-                    border: "1px solid #d5d9d9",
-                    borderRadius: "8px",
-                    outline: "none",
-                    boxSizing: "border-box",
-                    fontFamily: "inherit",
-                    resize: "vertical",
-                  }}
-                />
-              </div>
-              <button
-                type="submit"
-                className="store-btn store-btn-primary"
-                disabled={orderSubmitting}
-              >
-                {orderSubmitting ? "Submitting…" : "Submit order"}
-              </button>
-            </form>
-          ) : null}
-
-          {cart.length === 0 ? (
-            <p style={{ margin: 0, color: "#767676", fontSize: "15px", lineHeight: 1.5 }}>
-              No items yet. Add books from below.
-            </p>
-          ) : (
-            <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-              {cart.map((line) => (
-                <li key={line.cartLineId} className="cart-line">
-                  <span style={{ color: "#0f1111", fontSize: "15px", lineHeight: 1.45 }}>
-                    {line.title}{" "}
-                    <span style={{ color: "#565959", fontWeight: 700 }}>
-                      — {formatPriceDisplay(line.price)}
-                    </span>
-                  </span>
-                  <button
-                    type="button"
-                    className="store-btn store-btn-remove"
-                    onClick={() => removeFromCart(line.cartLineId)}
-                  >
-                    Remove
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* Track order */}
-        <div className="store-panel" style={{ marginBottom: "28px" }}>
-          <h2 className="store-section-title">Track order</h2>
-          <p className="store-muted-text" style={{ margin: "0 0 12px" }}>
-            Enter the phone number from your order to see status and details.
-          </p>
-          <p className="store-muted-text" style={{ margin: "0 0 16px", fontSize: "13px" }}>
-            Supports formats like +91, spaces, dashes (10-digit Indian mobile).
-          </p>
-          <div className="store-track-row">
-            <input
-              className="store-search"
-              type="tel"
-              inputMode="numeric"
-              maxLength={14}
-              placeholder="Enter phone (e.g. 9876543210)"
-              value={trackPhone}
-              onChange={(e) => setTrackPhone(e.target.value)}
-              style={{ flex: "1 1 220px", maxWidth: "360px" }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleTrackOrder();
-              }}
-            />
-            <button
-              type="button"
-              className="store-btn store-btn-primary"
-              onClick={handleTrackOrder}
-              disabled={trackLoading}
-            >
-              {trackLoading ? "Searching…" : "Track"}
-            </button>
-          </div>
-          {trackError ? (
-            <p className="store-order-error" role="alert" style={{ margin: 0 }}>
-              {trackError}
-            </p>
-          ) : null}
-          {trackedOrders && trackedOrders.length === 0 ? (
-            <p style={{ margin: "12px 0 0", color: "#565959", fontSize: "15px" }}>
-              No orders found for this phone number.
-            </p>
-          ) : null}
-          {trackedOrders && trackedOrders.length > 0
-            ? trackedOrders.map((order) => (
-                <div key={order._id} className="store-track-card">
-                  <p
-                    style={{
-                      margin: "0 0 14px",
-                      display: "flex",
-                      flexWrap: "wrap",
-                      alignItems: "center",
-                      gap: "10px",
-                    }}
-                  >
-                    <span style={{ fontWeight: 600, color: "#334155" }}>Status</span>
-                    <span className={trackStatusPillClass(order.status)}>
-                      {formatOrderStatusLabel(order.status)}
-                    </span>
-                  </p>
-                  <p style={{ margin: "0 0 12px", color: "#64748b", fontSize: "13px" }}>
-                    {order.createdAt
-                      ? new Date(order.createdAt).toLocaleString()
-                      : ""}
-                  </p>
-                  <p style={{ margin: "0 0 6px", fontWeight: 600 }}>Books</p>
-                  <ul style={{ margin: "0 0 10px", paddingLeft: "18px", color: "#333" }}>
-                    {(order.books || []).map((b, i) => (
-                      <li key={i} style={{ marginBottom: "4px" }}>
-                        {(b && b.title) || "Book"}{" "}
-                        {b && b.price != null && b.price !== ""
-                          ? `— ${formatPriceDisplay(b.price)}`
-                          : ""}
-                      </li>
-                    ))}
-                  </ul>
-                  <p style={{ margin: 0, fontWeight: 700 }}>
-                    Total: ₹{order.totalPrice}
-                  </p>
-                </div>
-              ))
-            : null}
         </div>
 
         {/* Books by category */}
@@ -1045,6 +890,282 @@ function App() {
           <p className="store-empty-hint">
             No books found
           </p>
+        )}
+
+        {showCart && (
+          <Modal onClose={() => setShowCart(false)}>
+            <div className="store-panel" style={{ marginBottom: 0, boxShadow: "none", border: "none", padding: 0 }}>
+              <div className="cart-toolbar">
+                <h2>
+                  Your cart{" "}
+                  <span className="muted">
+                    ({cart.length} {cart.length === 1 ? "item" : "items"})
+                  </span>
+                </h2>
+                <div className="cart-actions">
+                  <button
+                    type="button"
+                    className="store-btn store-btn-ghost"
+                    onClick={clearCart}
+                    disabled={cart.length === 0}
+                  >
+                    Clear cart
+                  </button>
+                  {cart.length > 0 ? (
+                    <a
+                      className="store-btn-wa store-btn-wa-inline"
+                      href={buildWhatsAppCartOrderUrl(cart)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Order all on WhatsApp
+                    </a>
+                  ) : (
+                    <button type="button" disabled className="store-btn-wa-disabled">
+                      Order all on WhatsApp
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="store-btn store-btn-primary"
+                    disabled={cart.length === 0}
+                    onClick={() => {
+                      setShowOrderForm((v) => !v);
+                      setOrderError("");
+                      setOrderSuccess("");
+                    }}
+                  >
+                    {showOrderForm ? "Hide order form" : "Place order"}
+                  </button>
+                </div>
+              </div>
+
+              {orderSuccess ? (
+                <p className="store-order-success" role="status">
+                  {orderSuccess}
+                </p>
+              ) : null}
+
+              {showOrderForm && cart.length > 0 ? (
+                <form className="store-order-panel" onSubmit={handlePlaceOrderSubmit}>
+                  <p className="store-label">Checkout</p>
+                  <p style={{ margin: "0 0 14px", fontSize: "14px", color: "#565959" }}>
+                    Total:{" "}
+                    <strong style={{ color: "#0f1111" }}>
+                      ₹{cartTotalNumeric(cart).toFixed(2)}
+                    </strong>
+                  </p>
+                  {orderError ? (
+                    <p className="store-order-error" role="alert">
+                      {orderError}
+                    </p>
+                  ) : null}
+                  <div style={{ marginBottom: "12px" }}>
+                    <label className="store-label" htmlFor="order-name">
+                      Name
+                    </label>
+                    <input
+                      id="order-name"
+                      className="store-search"
+                      style={{ maxWidth: "100%" }}
+                      value={orderName}
+                      onChange={(e) => setOrderName(e.target.value)}
+                      required
+                      autoComplete="name"
+                    />
+                  </div>
+                  <div style={{ marginBottom: "12px" }}>
+                    <label className="store-label" htmlFor="order-phone">
+                      Phone
+                    </label>
+                    <input
+                      id="order-phone"
+                      className="store-search"
+                      style={{ maxWidth: "100%" }}
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={14}
+                      placeholder="Enter phone (e.g. 9876543210)"
+                      value={orderPhone}
+                      onChange={(e) => setOrderPhone(e.target.value)}
+                      required
+                      autoComplete="tel"
+                    />
+                    <p
+                      style={{
+                        margin: "6px 0 0",
+                        fontSize: "13px",
+                        color: "#767676",
+                      }}
+                    >
+                      Supports formats like +91, spaces, dashes
+                    </p>
+                  </div>
+                  <div style={{ marginBottom: "16px" }}>
+                    <label className="store-label" htmlFor="order-address">
+                      Address
+                    </label>
+                    <textarea
+                      id="order-address"
+                      value={orderAddress}
+                      onChange={(e) => setOrderAddress(e.target.value)}
+                      required
+                      rows={3}
+                      autoComplete="street-address"
+                      style={{
+                        width: "100%",
+                        maxWidth: "100%",
+                        padding: "11px 16px",
+                        fontSize: "15px",
+                        border: "1px solid #d5d9d9",
+                        borderRadius: "8px",
+                        outline: "none",
+                        boxSizing: "border-box",
+                        fontFamily: "inherit",
+                        resize: "vertical",
+                      }}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="store-btn store-btn-primary"
+                    disabled={orderSubmitting}
+                  >
+                    {orderSubmitting ? "Submitting…" : "Submit order"}
+                  </button>
+                </form>
+              ) : null}
+
+              {cart.length === 0 ? (
+                <p style={{ margin: 0, color: "#767676", fontSize: "15px", lineHeight: 1.5 }}>
+                  No items yet. Add books from below.
+                </p>
+              ) : (
+                <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                  {cart.map((line) => (
+                    <li key={line.cartLineId} className="cart-line">
+                      <span style={{ color: "#0f1111", fontSize: "15px", lineHeight: 1.45 }}>
+                        {line.title}{" "}
+                        <span style={{ color: "#565959", fontWeight: 700 }}>
+                          — {formatPriceDisplay(line.price)}
+                        </span>
+                      </span>
+                      <button
+                        type="button"
+                        className="store-btn store-btn-remove"
+                        onClick={() => removeFromCart(line.cartLineId)}
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </Modal>
+        )}
+
+        {showTrack && (
+          <Modal onClose={() => setShowTrack(false)}>
+            <div className="store-panel" style={{ marginBottom: 0, boxShadow: "none", border: "none", padding: 0 }}>
+              <h2 className="store-section-title">Track order</h2>
+              <p className="store-muted-text" style={{ margin: "0 0 12px" }}>
+                Enter the phone number from your order to see status and details.
+              </p>
+              <p className="store-muted-text" style={{ margin: "0 0 16px", fontSize: "13px" }}>
+                Supports formats like +91, spaces, dashes (10-digit Indian mobile).
+              </p>
+              <div className="store-track-row">
+                <input
+                  className="store-search"
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={14}
+                  placeholder="Enter phone (e.g. 9876543210)"
+                  value={trackPhone}
+                  onChange={(e) => setTrackPhone(e.target.value)}
+                  style={{ flex: "1 1 220px", maxWidth: "360px" }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleTrackOrder();
+                  }}
+                />
+                <button
+                  type="button"
+                  className="store-btn store-btn-primary"
+                  onClick={handleTrackOrder}
+                  disabled={trackLoading}
+                >
+                  {trackLoading ? "Searching…" : "Track"}
+                </button>
+              </div>
+              {trackError ? (
+                <p className="store-order-error" role="alert" style={{ margin: 0 }}>
+                  {trackError}
+                </p>
+              ) : null}
+              {trackedOrders && trackedOrders.length === 0 ? (
+                <p style={{ margin: "12px 0 0", color: "#565959", fontSize: "15px" }}>
+                  No orders found for this phone number.
+                </p>
+              ) : null}
+              {trackedOrders && trackedOrders.length > 0
+                ? trackedOrders.map((order) => (
+                    <div key={order._id} className="store-track-card">
+                      <p
+                        style={{
+                          margin: "0 0 14px",
+                          display: "flex",
+                          flexWrap: "wrap",
+                          alignItems: "center",
+                          gap: "10px",
+                        }}
+                      >
+                        <span style={{ fontWeight: 600, color: "#334155" }}>Status</span>
+                        <span className={trackStatusPillClass(order.status)}>
+                          {formatOrderStatusLabel(order.status)}
+                        </span>
+                      </p>
+                      <p style={{ margin: "0 0 12px", color: "#64748b", fontSize: "13px" }}>
+                        {order.createdAt
+                          ? new Date(order.createdAt).toLocaleString()
+                          : ""}
+                      </p>
+                      <p style={{ margin: "0 0 6px", fontWeight: 600 }}>Books</p>
+                      <ul style={{ margin: "0 0 10px", paddingLeft: "18px", color: "#333" }}>
+                        {(order.books || []).map((b, i) => (
+                          <li key={i} style={{ marginBottom: "4px" }}>
+                            {(b && b.title) || "Book"}{" "}
+                            {b && b.price != null && b.price !== ""
+                              ? `— ${formatPriceDisplay(b.price)}`
+                              : ""}
+                          </li>
+                        ))}
+                      </ul>
+                      <p style={{ margin: 0, fontWeight: 700 }}>
+                        Total: ₹{order.totalPrice}
+                      </p>
+                    </div>
+                  ))
+                : null}
+            </div>
+          </Modal>
+        )}
+
+        {showTerms && (
+          <Modal onClose={() => setShowTerms(false)}>
+            <div className="store-panel" style={{ marginBottom: 0, boxShadow: "none", border: "none", padding: 0 }}>
+              <h2 className="store-section-title">Terms & Conditions</h2>
+              <p className="store-muted-text" style={{ marginBottom: "10px" }}>
+                Please review these terms before placing your order.
+              </p>
+              <ul style={{ margin: 0, paddingLeft: "18px", color: "#334155", lineHeight: 1.6 }}>
+                <li>All orders are subject to stock availability.</li>
+                <li>Prices are shown at checkout and may include applicable charges.</li>
+                <li>Please provide accurate contact and delivery details.</li>
+                <li>Order status updates are available through the Track Order section.</li>
+              </ul>
+            </div>
+          </Modal>
         )}
       </div>
     </div>

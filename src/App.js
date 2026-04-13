@@ -87,6 +87,7 @@ function App() {
   const [orderSuccess, setOrderSuccess] = useState("");
   const [search, setSearch] = useState("");
   const [selectedClass, setSelectedClass] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [trackPhone, setTrackPhone] = useState("");
   const [trackedOrders, setTrackedOrders] = useState(null);
   const [trackLoading, setTrackLoading] = useState(false);
@@ -213,8 +214,19 @@ function App() {
 
   const query = search.trim().toLowerCase();
 
+  const categories = [
+    "All",
+    ...Array.from(
+      new Set(books.map((book) => (book.category || "General").trim() || "General"))
+    ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })),
+  ];
+
   const filteredBooks = books.filter((book) => {
     if (!titleMatchesClass(book.title, selectedClass)) return false;
+    const matchesCategory =
+      selectedCategory === "All" ||
+      (book.category || "General") === selectedCategory;
+    if (!matchesCategory) return false;
     if (!query) return true;
     const title = (book.title || "").toLowerCase();
     const author = (book.author || "").toLowerCase();
@@ -370,6 +382,16 @@ function App() {
           border: 2px solid #e2e8f0;
           background: #fff;
           color: #64748b;
+        }
+        .category-chip-active {
+          border: 2px solid #2563eb;
+          background: #2563eb;
+          color: #fff;
+        }
+        .category-chip-inactive {
+          border: 2px solid #cbd5e1;
+          background: #fff;
+          color: #334155;
         }
         .cart-toolbar {
           display: flex;
@@ -733,6 +755,28 @@ function App() {
                   }
                 >
                   {label}
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="store-label" style={{ marginTop: "18px", marginBottom: "8px" }}>
+            Category
+          </p>
+          <div className="filter-row">
+            {categories.map((cat) => {
+              const active = selectedCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat)}
+                  className={
+                    "filter-chip " +
+                    (active ? "category-chip-active" : "category-chip-inactive")
+                  }
+                >
+                  {cat}
                 </button>
               );
             })}

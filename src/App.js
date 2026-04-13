@@ -27,6 +27,12 @@ function cartTotalNumeric(cartLines) {
   }, 0);
 }
 
+function formatOrderStatusLabel(status) {
+  const s =
+    typeof status === "string" && status.trim() ? status.trim() : "pending";
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+
 function titleMatchesClass(title, selectedClass) {
   if (selectedClass === "All") return true;
   const num = selectedClass.replace(/^Class\s+/i, "").trim();
@@ -70,6 +76,10 @@ function App() {
   const [orderSuccess, setOrderSuccess] = useState("");
   const [search, setSearch] = useState("");
   const [selectedClass, setSelectedClass] = useState("All");
+  const [trackPhone, setTrackPhone] = useState("");
+  const [trackedOrders, setTrackedOrders] = useState(null);
+  const [trackLoading, setTrackLoading] = useState(false);
+  const [trackError, setTrackError] = useState("");
 
   useEffect(() => {
     const onHash = () => setRouteHash(window.location.hash || "#/");
@@ -151,6 +161,37 @@ function App() {
       setOrderError("Could not reach server. Please try again.");
     } finally {
       setOrderSubmitting(false);
+    }
+  };
+
+  const handleTrackOrder = async () => {
+    const phone = trackPhone.trim();
+    setTrackError("");
+    if (!phone) {
+      setTrackedOrders(null);
+      setTrackError("Enter the phone number you used when placing the order.");
+      return;
+    }
+    setTrackLoading(true);
+    try {
+      const res = await fetch(
+        `${ORDERS_URL}/track/${encodeURIComponent(phone)}`
+      );
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setTrackedOrders(null);
+        setTrackError(
+          (data && data.message) || `Could not load orders (${res.status})`
+        );
+        return;
+      }
+      setTrackedOrders(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("[track-order]", err);
+      setTrackedOrders(null);
+      setTrackError("Could not reach server. Please try again.");
+    } finally {
+      setTrackLoading(false);
     }
   };
 
@@ -540,6 +581,25 @@ function App() {
           background: #005f6f;
           box-shadow: 0 4px 12px rgba(0, 113, 133, 0.3);
         }
+        .store-track-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          align-items: center;
+          margin-bottom: 16px;
+        }
+        .store-track-card {
+          margin-top: 14px;
+          padding: 14px 16px;
+          background: #f7f8f8;
+          border-radius: 10px;
+          border: 1px solid #e3e6e6;
+          font-size: 14px;
+          color: #0f1111;
+        }
+        .store-track-card + .store-track-card {
+          margin-top: 12px;
+        }
       `}</style>
       <div style={shell}>
         <header className="store-header">
@@ -739,6 +799,82 @@ function App() {
               ))}
             </ul>
           )}
+        </div>
+
+        {/* Track order */}
+        <div className="store-panel" style={{ marginBottom: "28px" }}>
+          <h2
+            style={{
+              margin: "0 0 14px",
+              fontSize: "18px",
+              fontWeight: 600,
+              color: "#0f1111",
+            }}
+          >
+            Track order
+          </h2>
+          <p style={{ margin: "0 0 14px", fontSize: "14px", color: "#565959" }}>
+            Enter the phone number from your order to see status and details.
+          </p>
+          <div className="store-track-row">
+            <input
+              className="store-search"
+              type="tel"
+              value={trackPhone}
+              onChange={(e) => setTrackPhone(e.target.value)}
+              placeholder="Phone number"
+              style={{ flex: "1 1 220px", maxWidth: "360px" }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleTrackOrder();
+              }}
+            />
+            <button
+              type="button"
+              className="store-btn store-btn-primary"
+              onClick={handleTrackOrder}
+              disabled={trackLoading}
+            >
+              {trackLoading ? "Searching…" : "Track"}
+            </button>
+          </div>
+          {trackError ? (
+            <p className="store-order-error" role="alert" style={{ margin: 0 }}>
+              {trackError}
+            </p>
+          ) : null}
+          {trackedOrders && trackedOrders.length === 0 ? (
+            <p style={{ margin: "12px 0 0", color: "#565959", fontSize: "15px" }}>
+              No orders found for this phone number.
+            </p>
+          ) : null}
+          {trackedOrders && trackedOrders.length > 0
+            ? trackedOrders.map((order) => (
+                <div key={order._id} className="store-track-card">
+                  <p style={{ margin: "0 0 8px", fontWeight: 600 }}>
+                    Status: {formatOrderStatusLabel(order.status)}
+                  </p>
+                  <p style={{ margin: "0 0 8px", color: "#565959", fontSize: "13px" }}>
+                    {order.createdAt
+                      ? new Date(order.createdAt).toLocaleString()
+                      : ""}
+                  </p>
+                  <p style={{ margin: "0 0 6px", fontWeight: 600 }}>Books</p>
+                  <ul style={{ margin: "0 0 10px", paddingLeft: "18px", color: "#333" }}>
+                    {(order.books || []).map((b, i) => (
+                      <li key={i} style={{ marginBottom: "4px" }}>
+                        {(b && b.title) || "Book"}{" "}
+                        {b && b.price != null && b.price !== ""
+                          ? `— ${formatPriceDisplay(b.price)}`
+                          : ""}
+                      </li>
+                    ))}
+                  </ul>
+                  <p style={{ margin: 0, fontWeight: 700 }}>
+                    Total: ₹{order.totalPrice}
+                  </p>
+                </div>
+              ))
+            : null}
         </div>
 
         {/* Book grid */}

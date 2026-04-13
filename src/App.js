@@ -56,14 +56,34 @@ function buildWhatsAppCartOrderUrl(cartBooks) {
   return `${base}?text=${encoded}`;
 }
 
-function Modal({ children, onClose }) {
+function Modal({ title, onClose, children, footer, wide }) {
   return (
-    <div className="modal-overlay" role="dialog" aria-modal="true">
-      <div className="modal-box">
-        <button type="button" className="modal-close-btn" onClick={onClose}>
-          X
-        </button>
-        {children}
+    <div
+      className="modal-overlay"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={title ? "store-modal-title" : undefined}
+    >
+      <div
+        className={`modal-shell${wide ? " modal-shell--wide" : ""}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="modal-header-bar">
+          <h2 id="store-modal-title" className="modal-title">
+            {title}
+          </h2>
+          <button
+            type="button"
+            className="modal-close-icon"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+        <div className="modal-scroll">{children}</div>
+        {footer ? <div className="modal-footer-bar">{footer}</div> : null}
       </div>
     </div>
   );
@@ -240,557 +260,47 @@ function App() {
     a.localeCompare(b, undefined, { sensitivity: "base" })
   );
 
-  const shell = {
-    maxWidth: "1200px",
-    margin: "0 auto",
-    padding: "0 clamp(16px, 4vw, 28px)",
-  };
-
   return (
     <div className="store-root">
-      <style>{`
-        .store-root {
-          --store-primary: #0f766e;
-          --store-primary-hover: #0d9488;
-          --store-primary-dark: #115e59;
-          --store-muted: #64748b;
-          --store-text: #0f172a;
-          font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-          min-height: 100vh;
-          background: linear-gradient(180deg, #f0fdfa 0%, #f1f5f4 45%, #ecfdf5 100%);
-          padding: 32px 0 56px;
-        }
-        @keyframes store-fade-up {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .store-panel {
-          margin-bottom: 28px;
-          padding: 24px 28px;
-          background: #fff;
-          border-radius: 12px;
-          border: 1px solid rgba(15, 23, 42, 0.06);
-          box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
-        }
-        .store-header {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: baseline;
-          justify-content: space-between;
-          gap: 12px 20px;
-          margin-bottom: 32px;
-          padding-bottom: 22px;
-          border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-        }
-        .store-header h1 {
-          margin: 0;
-          font-size: clamp(1.65rem, 4vw, 2.15rem);
-          font-weight: 700;
-          color: var(--store-text);
-          letter-spacing: -0.03em;
-          line-height: 1.2;
-        }
-        .store-header a {
-          font-size: 14px;
-          font-weight: 600;
-          color: #007185;
-          text-decoration: none;
-          padding: 6px 4px;
-          border-radius: 4px;
-          transition: color 0.2s ease, background 0.2s ease;
-        }
-        .store-header a:hover {
-          color: #c7511f;
-          background: rgba(0, 113, 133, 0.06);
-        }
-        .store-label {
-          display: block;
-          margin-bottom: 10px;
-          font-size: 13px;
-          font-weight: 600;
-          letter-spacing: 0.02em;
-          color: var(--store-muted);
-        }
-        .store-section-title {
-          margin: 0 0 16px;
-          font-size: clamp(1.1rem, 2.5vw, 1.25rem);
-          font-weight: 700;
-          color: var(--store-text);
-          letter-spacing: -0.02em;
-        }
-        .store-muted-text {
-          color: var(--store-muted);
-          font-size: 14px;
-          line-height: 1.55;
-        }
-        .store-header-actions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-        }
-        .store-header-action-btn {
-          border: 1px solid #cbd5e1;
-          background: #fff;
-          color: #334155;
-          border-radius: 999px;
-          padding: 8px 14px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background 0.2s ease, border-color 0.2s ease, transform 0.18s ease;
-        }
-        .store-header-action-btn:hover {
-          background: #f8fafc;
-          border-color: #94a3b8;
-          transform: translateY(-1px);
-        }
-        .store-search {
-          width: 100%;
-          max-width: 440px;
-          padding: 11px 16px;
-          font-size: 15px;
-          border: 1px solid #d5d9d9;
-          border-radius: 8px;
-          outline: none;
-          box-sizing: border-box;
-          transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-        .store-search:focus {
-          border-color: var(--store-primary);
-          box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.18);
-        }
-        .store-search::placeholder {
-          color: #888;
-        }
-        .filter-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin-top: 4px;
-        }
-        .filter-chip {
-          padding: 8px 16px;
-          font-size: 14px;
-          font-weight: 600;
-          font-family: inherit;
-          border-radius: 999px;
-          cursor: pointer;
-          transition: transform 0.18s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-        }
-        .filter-chip:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 2px 8px rgba(15, 17, 17, 0.08);
-        }
-        .filter-chip:active {
-          transform: translateY(0);
-        }
-        .category-chip-active {
-          border: 2px solid #2563eb;
-          background: #2563eb;
-          color: #fff;
-        }
-        .category-chip-inactive {
-          border: 2px solid #cbd5e1;
-          background: #fff;
-          color: #334155;
-        }
-        .cart-toolbar {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          justify-content: space-between;
-          gap: 14px;
-          margin-bottom: 16px;
-          padding-bottom: 16px;
-          border-bottom: 1px solid #e3e6e6;
-        }
-        .cart-toolbar h2 {
-          margin: 0;
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: var(--store-text);
-          letter-spacing: -0.02em;
-        }
-        .cart-toolbar .muted {
-          font-weight: 500;
-          color: var(--store-muted);
-          font-size: 15px;
-        }
-        .cart-actions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          align-items: center;
-        }
-        .store-btn {
-          font-family: inherit;
-          font-size: 14px;
-          font-weight: 600;
-          border-radius: 10px;
-          padding: 10px 20px;
-          cursor: pointer;
-          border: none;
-          transition: transform 0.18s ease, box-shadow 0.2s ease, background 0.2s ease, opacity 0.2s ease, border-color 0.2s ease;
-        }
-        .store-btn:disabled {
-          cursor: not-allowed;
-          opacity: 0.65;
-        }
-        .store-btn:not(:disabled):active {
-          transform: scale(0.98);
-        }
-        .store-btn-ghost {
-          background: #fff;
-          color: #b45309;
-          border: 1px solid #e2e8f0;
-          box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
-        }
-        .store-btn-ghost:hover:not(:disabled) {
-          background: #fffbeb;
-          border-color: #fcd34d;
-          transform: scale(1.02);
-          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-        }
-        .store-btn-ghost:disabled {
-          color: #a2a9ad;
-          border-color: #e3e6e6;
-          background: #f0f2f2;
-        }
-        .store-btn-cart {
-          width: 100%;
-          padding: 12px 16px;
-          background: var(--store-primary);
-          color: #fff;
-          border: none;
-          border-radius: 10px;
-          box-shadow: 0 2px 8px rgba(15, 118, 110, 0.35);
-        }
-        .store-btn-cart:hover:not(:disabled) {
-          background: var(--store-primary-hover);
-          transform: scale(1.02);
-          box-shadow: 0 6px 16px rgba(15, 118, 110, 0.4);
-        }
-        .store-btn-wa {
-          display: block;
-          width: 100%;
-          padding: 12px 16px;
-          text-align: center;
-          text-decoration: none;
-          box-sizing: border-box;
-          background: #16a34a;
-          color: #fff;
-          border-radius: 10px;
-          font-size: 14px;
-          font-weight: 600;
-          border: none;
-          box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
-          transition: transform 0.18s ease, box-shadow 0.2s ease, background 0.2s ease;
-        }
-        .store-btn-wa:hover {
-          background: #15803d;
-          transform: scale(1.02);
-          box-shadow: 0 6px 16px rgba(22, 163, 74, 0.35);
-        }
-        .store-btn-wa:active {
-          transform: scale(0.98);
-        }
-        .store-btn-wa-inline {
-          display: inline-block;
-          width: auto;
-          padding: 9px 18px;
-        }
-        .store-btn-wa:disabled {
-          background: #e3e6e6;
-          color: #888;
-          box-shadow: none;
-          cursor: not-allowed;
-        }
-        .store-btn-wa-disabled {
-          font-family: inherit;
-          font-size: 14px;
-          font-weight: 600;
-          padding: 9px 18px;
-          border-radius: 999px;
-          border: none;
-          background: #e3e6e6;
-          color: #888;
-          cursor: not-allowed;
-        }
-        .cart-line {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          padding: 14px 0;
-          border-bottom: 1px solid #f0f2f2;
-          transition: background 0.2s ease;
-        }
-        .cart-line:hover {
-          background: rgba(0, 0, 0, 0.02);
-          border-radius: 8px;
-        }
-        .cart-line:last-child {
-          border-bottom: none;
-        }
-        .store-btn-remove {
-          padding: 7px 14px;
-          font-size: 13px;
-          background: #fff;
-          color: #b12704;
-          border: 1px solid #d5d9d9;
-          border-radius: 999px;
-        }
-        .store-btn-remove:hover {
-          background: #fef8f7;
-          border-color: #c45500;
-        }
-        .store-category-section {
-          margin-bottom: 44px;
-        }
-        .store-category-section:last-of-type {
-          margin-bottom: 0;
-        }
-        .store-category-heading {
-          margin: 0 0 22px;
-          font-size: clamp(1.3rem, 3.2vw, 1.65rem);
-          font-weight: 800;
-          color: var(--store-text);
-          letter-spacing: -0.03em;
-          line-height: 1.25;
-          padding-bottom: 12px;
-          border-bottom: 2px solid rgba(15, 118, 110, 0.22);
-        }
-        .book-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
-          gap: 24px;
-          align-items: stretch;
-        }
-        .book-card {
-          display: flex;
-          flex-direction: column;
-          background: #fff;
-          padding: 12px;
-          overflow: hidden;
-          border-radius: 12px;
-          border: 1px solid rgba(15, 23, 42, 0.07);
-          box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
-          transition: transform 0.28s cubic-bezier(0.25, 0.8, 0.25, 1),
-            box-shadow 0.28s cubic-bezier(0.25, 0.8, 0.25, 1),
-            border-color 0.25s ease;
-          animation: store-fade-up 0.45s ease backwards;
-        }
-        .book-card:hover {
-          transform: translateY(-6px) scale(1.02);
-          box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
-          border-color: rgba(15, 118, 110, 0.25);
-        }
-        .book-card-media {
-          position: relative;
-          padding: 8px 8px 0;
-          background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
-          border-radius: 10px;
-        }
-        .book-card-media img {
-          width: 100%;
-          height: 150px;
-          object-fit: cover;
-          border-radius: 10px;
-          display: block;
-          background: #e2e8f0;
-          transition: transform 0.35s ease;
-        }
-        .book-card:hover .book-card-media img {
-          transform: scale(1.03);
-        }
-        .book-card-body {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          padding: 18px 10px 14px;
-          flex: 1;
-        }
-        .book-card-body h3 {
-          margin: 0;
-          font-size: 1.05rem;
-          font-weight: 700;
-          color: var(--store-text);
-          line-height: 1.45;
-          letter-spacing: -0.02em;
-        }
-        .book-card-meta {
-          margin: 0;
-          font-size: 13px;
-          color: var(--store-muted);
-          line-height: 1.4;
-        }
-        .book-card-price {
-          margin: 0;
-          font-size: 1.15rem;
-          font-weight: 700;
-          color: var(--store-primary-dark);
-        }
-        .book-card-actions {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          margin-top: auto;
-          padding-top: 4px;
-        }
-        .store-empty-hint {
-          text-align: center;
-          margin-top: 32px;
-          color: #565959;
-          font-size: 15px;
-        }
-        .store-order-panel {
-          margin-top: 18px;
-          padding-top: 18px;
-          border-top: 1px solid #e3e6e6;
-        }
-        .store-order-success {
-          margin: 0 0 14px;
-          padding: 12px 14px;
-          font-size: 14px;
-          font-weight: 600;
-          color: #0f5132;
-          background: #d1e7dd;
-          border: 1px solid #badbcc;
-          border-radius: 8px;
-        }
-        .store-order-error {
-          margin: 0 0 14px;
-          font-size: 14px;
-          font-weight: 600;
-          color: #b12704;
-        }
-        .store-btn-primary {
-          background: var(--store-primary);
-          color: #fff;
-          box-shadow: 0 2px 8px rgba(15, 118, 110, 0.35);
-        }
-        .store-btn-primary:hover:not(:disabled) {
-          background: var(--store-primary-hover);
-          transform: scale(1.02);
-          box-shadow: 0 6px 16px rgba(15, 118, 110, 0.4);
-        }
-        .store-track-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          align-items: center;
-          margin-bottom: 16px;
-        }
-        .store-track-card {
-          margin-top: 16px;
-          padding: 20px 22px;
-          background: #fff;
-          border-radius: 12px;
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
-          font-size: 14px;
-          color: var(--store-text);
-        }
-        .store-track-card + .store-track-card {
-          margin-top: 14px;
-        }
-        .store-status-pill {
-          display: inline-block;
-          padding: 6px 12px;
-          border-radius: 999px;
-          font-size: 12px;
-          font-weight: 700;
-          letter-spacing: 0.02em;
-          text-transform: capitalize;
-        }
-        .store-status-pill--pending {
-          background: #fef9c3;
-          color: #854d0e;
-          border: 1px solid #fde047;
-        }
-        .store-status-pill--confirmed {
-          background: #dbeafe;
-          color: #1e40af;
-          border: 1px solid #93c5fd;
-        }
-        .store-status-pill--delivered {
-          background: #d1fae5;
-          color: #065f46;
-          border: 1px solid #6ee7b7;
-        }
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0, 0, 0, 0.5);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
-          padding: 20px;
-          box-sizing: border-box;
-        }
-        .modal-box {
-          position: relative;
-          background: #fff;
-          padding: 20px;
-          border-radius: 10px;
-          width: 90%;
-          max-width: 720px;
-          max-height: 90vh;
-          overflow-y: auto;
-        }
-        .modal-close-btn {
-          position: absolute;
-          top: 12px;
-          right: 12px;
-          border: 1px solid #cbd5e1;
-          background: #fff;
-          color: #334155;
-          border-radius: 999px;
-          width: 30px;
-          height: 30px;
-          font-size: 12px;
-          font-weight: 700;
-          cursor: pointer;
-        }
-      `}</style>
-      <div style={shell}>
-        <header className="store-header">
-          <h1>My Bookstore</h1>
-          <div className="store-header-actions">
-            <button
-              type="button"
-              className="store-header-action-btn"
-              onClick={() => setShowCart(true)}
-            >
-              Cart 🛒
-            </button>
-            <button
-              type="button"
-              className="store-header-action-btn"
-              onClick={() => setShowTrack(true)}
-            >
-              Track Order 📦
-            </button>
-            <button
-              type="button"
-              className="store-header-action-btn"
-              onClick={() => setShowTerms(true)}
-            >
-              Terms 📜
-            </button>
-          </div>
-        </header>
+      <nav className="store-nav" aria-label="Main">
+        <a href="#/" className="store-nav-brand">
+          <span className="store-nav-brand-icon" aria-hidden="true">
+            {"\u{1F4DA}"}
+          </span>
+          <span className="store-nav-brand-text">BookStore</span>
+        </a>
+        <div className="store-nav-actions">
+          <a className="store-nav-link" href="#/admin">
+            Admin
+          </a>
+          <button
+            type="button"
+            className="store-nav-btn"
+            onClick={() => setShowCart(true)}
+          >
+            {"\u{1F6D2}"} Cart
+            <span className="store-nav-badge" aria-label={`${cart.length} items`}>
+              {cart.length}
+            </span>
+          </button>
+          <button
+            type="button"
+            className="store-nav-btn store-nav-btn--ghost"
+            onClick={() => setShowTrack(true)}
+          >
+            {"\u{1F4E6}"} Track
+          </button>
+          <button
+            type="button"
+            className="store-nav-btn store-nav-btn--ghost"
+            onClick={() => setShowTerms(true)}
+          >
+            {"\u{1F4DC}"} Terms
+          </button>
+        </div>
+      </nav>
+
+      <main className="store-main">
 
         {/* Search + category filters */}
         <div className="store-panel">
@@ -832,7 +342,13 @@ function App() {
         {/* Books by category */}
         {categoryKeys.map((categoryName) => (
           <div key={categoryName} className="store-category-section">
-            <h2 className="store-category-heading">{categoryName}</h2>
+            <div className="store-category-heading-row">
+              <h2 className="store-category-heading">{categoryName}</h2>
+              <span className="store-category-count">
+                {groupedBooks[categoryName].length}{" "}
+                {groupedBooks[categoryName].length === 1 ? "book" : "books"}
+              </span>
+            </div>
             <div className="book-grid">
               {groupedBooks[categoryName].map((book, index) => (
                 <article
@@ -857,19 +373,20 @@ function App() {
                   </div>
                   <div className="book-card-body">
                     <h3>{book.title}</h3>
-                    <p className="book-card-meta">by {book.author}</p>
-                    <p className="book-card-price">
-                      {formatPriceDisplay(book.price)}
-                    </p>
-
-                    <div className="book-card-actions">
+                    <p className="book-card-meta">{book.author}</p>
+                    <div className="book-card-price-row">
+                      <p className="book-card-price">
+                        {formatPriceDisplay(book.price)}
+                      </p>
                       <button
                         type="button"
-                        className="store-btn store-btn-cart"
+                        className="store-btn store-btn-cart store-btn-cart--compact"
                         onClick={() => addToCart(book)}
                       >
                         Add to Cart
                       </button>
+                    </div>
+                    <div className="book-card-actions">
                       <a
                         className="store-btn-wa"
                         href={buildWhatsAppOrderUrl(book.title, book.price)}
@@ -887,21 +404,38 @@ function App() {
         ))}
 
         {filteredBooks.length === 0 && books.length > 0 && (
-          <p className="store-empty-hint">
-            No books found
-          </p>
+          <div className="store-empty-state" role="status">
+            <div className="store-empty-state-icon" aria-hidden="true">
+              {"\u{1F4DA}"}
+            </div>
+            <h3 className="store-empty-state-title">No books found</h3>
+            <p className="store-empty-state-sub">
+              Try a different search or category.
+            </p>
+          </div>
         )}
 
         {showCart && (
-          <Modal onClose={() => setShowCart(false)}>
-            <div className="store-panel" style={{ marginBottom: 0, boxShadow: "none", border: "none", padding: 0 }}>
+          <Modal
+            title="Your Cart"
+            wide
+            onClose={() => setShowCart(false)}
+            footer={
+              <div className="modal-cart-footer-total">
+                <span>Total</span>
+                <span className="modal-cart-footer-amount">
+                  ₹{cartTotalNumeric(cart).toFixed(2)}
+                </span>
+              </div>
+            }
+          >
+            <div style={{ margin: 0, padding: 0 }}>
               <div className="cart-toolbar">
-                <h2>
-                  Your cart{" "}
-                  <span className="muted">
-                    ({cart.length} {cart.length === 1 ? "item" : "items"})
-                  </span>
-                </h2>
+                <p className="cart-toolbar-summary">
+                  {cart.length === 0
+                    ? "No items yet"
+                    : `${cart.length} ${cart.length === 1 ? "item" : "items"} in cart`}
+                </p>
                 <div className="cart-actions">
                   <button
                     type="button"
@@ -1007,23 +541,12 @@ function App() {
                     </label>
                     <textarea
                       id="order-address"
+                      className="store-textarea"
                       value={orderAddress}
                       onChange={(e) => setOrderAddress(e.target.value)}
                       required
                       rows={3}
                       autoComplete="street-address"
-                      style={{
-                        width: "100%",
-                        maxWidth: "100%",
-                        padding: "11px 16px",
-                        fontSize: "15px",
-                        border: "1px solid #d5d9d9",
-                        borderRadius: "8px",
-                        outline: "none",
-                        boxSizing: "border-box",
-                        fontFamily: "inherit",
-                        resize: "vertical",
-                      }}
                     />
                   </div>
                   <button
@@ -1066,9 +589,8 @@ function App() {
         )}
 
         {showTrack && (
-          <Modal onClose={() => setShowTrack(false)}>
-            <div className="store-panel" style={{ marginBottom: 0, boxShadow: "none", border: "none", padding: 0 }}>
-              <h2 className="store-section-title">Track order</h2>
+          <Modal title="Track order" onClose={() => setShowTrack(false)}>
+            <div style={{ margin: 0, padding: 0 }}>
               <p className="store-muted-text" style={{ margin: "0 0 12px" }}>
                 Enter the phone number from your order to see status and details.
               </p>
@@ -1152,9 +674,11 @@ function App() {
         )}
 
         {showTerms && (
-          <Modal onClose={() => setShowTerms(false)}>
-            <div className="store-panel" style={{ marginBottom: 0, boxShadow: "none", border: "none", padding: 0 }}>
-              <h2 className="store-section-title">Terms & Conditions</h2>
+          <Modal
+            title="Terms & Conditions"
+            onClose={() => setShowTerms(false)}
+          >
+            <div style={{ margin: 0, padding: 0 }}>
               <p className="store-muted-text" style={{ marginBottom: "10px" }}>
                 Please review these terms before placing your order.
               </p>
@@ -1167,7 +691,7 @@ function App() {
             </div>
           </Modal>
         )}
-      </div>
+      </main>
     </div>
   );
 }

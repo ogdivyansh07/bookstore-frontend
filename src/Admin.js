@@ -8,55 +8,9 @@ import {
 
 const BOOK_IMAGE_PLACEHOLDER = "https://via.placeholder.com/150";
 
-const shell = {
-  maxWidth: "920px",
-  margin: "0 auto",
-  padding: "0 clamp(16px, 4vw, 28px)",
-};
-
-const inputStyle = {
-  width: "100%",
-  maxWidth: "400px",
-  padding: "10px 12px",
-  fontSize: "15px",
-  border: "1px solid #e2e8f0",
-  borderRadius: "10px",
-  boxSizing: "border-box",
-};
-
-const labelStyle = {
-  display: "block",
-  marginBottom: "6px",
-  fontSize: "13px",
-  fontWeight: 600,
-  color: "#64748b",
-  letterSpacing: "0.02em",
-};
-
 function orderEffectiveStatus(order) {
   const s = order && order.status;
   return s === "confirmed" || s === "delivered" ? s : "pending";
-}
-
-function orderStatusBadgeStyle(status) {
-  const styles = {
-    pending: {
-      background: "#fef9c3",
-      color: "#854d0e",
-      border: "1px solid #fde047",
-    },
-    confirmed: {
-      background: "#dbeafe",
-      color: "#1e40af",
-      border: "1px solid #93c5fd",
-    },
-    delivered: {
-      background: "#d1fae5",
-      color: "#065f46",
-      border: "1px solid #6ee7b7",
-    },
-  };
-  return styles[status] || styles.pending;
 }
 
 function AdminLoginScreen({ onSuccess, sessionExpired, onClearExpired }) {
@@ -111,68 +65,18 @@ function AdminLoginScreen({ onSuccess, sessionExpired, onClearExpired }) {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#eaeded",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "24px",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "380px",
-          background: "#fff",
-          borderRadius: "12px",
-          border: "1px solid rgba(0,0,0,0.08)",
-          boxShadow: "0 4px 20px rgba(15,17,17,0.1)",
-          padding: "28px 24px",
-        }}
-      >
-        <h1
-          style={{
-            margin: "0 0 8px",
-            fontSize: "1.25rem",
-            fontWeight: 700,
-            color: "#0f1111",
-          }}
-        >
-          Admin sign in
-        </h1>
-        <p style={{ margin: "0 0 20px", fontSize: "14px", color: "#565959" }}>
+    <div className="admin-login-page">
+      <div className="admin-login-card">
+        <h1 className="admin-login-title">Admin sign in</h1>
+        <p className="admin-login-desc">
           Enter the admin password to manage books.
         </p>
         {sessionExpired && !error ? (
-          <p
-            style={{
-              margin: "0 0 16px",
-              padding: "10px 14px",
-              fontSize: "14px",
-              fontWeight: 600,
-              color: "#8a6d3b",
-              background: "#fcf8e3",
-              border: "1px solid #faebcc",
-              borderRadius: "8px",
-            }}
-          >
+          <p className="admin-login-banner admin-login-banner--warn">
             Session expired, please login again
           </p>
         ) : null}
-        {error ? (
-          <p
-            style={{
-              margin: "0 0 16px",
-              fontSize: "14px",
-              fontWeight: 600,
-              color: "#b12704",
-            }}
-          >
-            {error}
-          </p>
-        ) : null}
+        {error ? <p className="admin-login-error">{error}</p> : null}
         <form onSubmit={handleSubmit}>
           <input
             type="password"
@@ -184,43 +88,18 @@ function AdminLoginScreen({ onSuccess, sessionExpired, onClearExpired }) {
             }}
             placeholder="Password"
             autoComplete="current-password"
-            style={{
-              width: "100%",
-              padding: "11px 14px",
-              fontSize: "15px",
-              border: "1px solid #d5d9d9",
-              borderRadius: "8px",
-              boxSizing: "border-box",
-              marginBottom: "16px",
-              outline: "none",
-            }}
+            className="admin-login-input"
           />
           <button
             type="submit"
             disabled={loading}
-            style={{
-              width: "100%",
-              padding: "12px 16px",
-              fontSize: "14px",
-              fontWeight: 600,
-              background: loading ? "#e2e8f0" : "#0f766e",
-              color: "#fff",
-              border: "none",
-              borderRadius: "10px",
-              cursor: loading ? "not-allowed" : "pointer",
-              boxShadow: loading
-                ? "none"
-                : "0 2px 8px rgba(15, 118, 110, 0.35)",
-            }}
+            className="admin-login-submit"
           >
             {loading ? "Signing in…" : "Continue"}
           </button>
         </form>
-        <p style={{ margin: "20px 0 0", textAlign: "center" }}>
-          <a
-            href="#/"
-            style={{ fontSize: "14px", fontWeight: 600, color: "#0f766e" }}
-          >
+        <p className="admin-login-back">
+          <a href="#/" className="admin-link">
             ← Back to store
           </a>
         </p>
@@ -533,168 +412,73 @@ function Admin() {
 
 
   return (
-    <div
-      className="admin-app"
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(180deg, #f0fdfa 0%, #f1f5f4 50%, #f8fafc 100%)",
-        padding: "28px 0 48px",
-        fontFamily:
-          'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-      }}
-    >
-      <style>{`
-        .admin-app .admin-order-card {
-          padding: 20px 22px;
-          margin: 0;
-          background: #fff;
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          border-radius: 12px;
-          box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
-        }
-        .admin-app .admin-orders-list {
-          margin: 0;
-          padding: 0;
-          list-style: none;
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-        }
-      `}</style>
-      <div style={shell}>
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "12px",
-            marginBottom: "16px",
-          }}
-        >
-          <a
-            href="#/"
-            style={{ color: "#0f766e", fontSize: "14px", fontWeight: 600 }}
-          >
+    <div className="admin-app">
+      <div className="admin-shell">
+        <div className="admin-topbar">
+          <a href="#/" className="admin-link">
             ← Back to bookstore
           </a>
-          <button
-            type="button"
-            onClick={logout}
-            style={{
-              padding: "9px 16px",
-              fontSize: "13px",
-              fontWeight: 600,
-              color: "#475569",
-              background: "#fff",
-              border: "1px solid #e2e8f0",
-              borderRadius: "10px",
-              cursor: "pointer",
-              boxShadow: "0 1px 3px rgba(15, 23, 42, 0.06)",
-              transition: "transform 0.15s ease, box-shadow 0.2s ease",
-            }}
-          >
+          <button type="button" onClick={logout} className="admin-logout-btn">
             Log out
           </button>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            gap: "8px",
-            marginBottom: "20px",
-            flexWrap: "wrap",
-          }}
-        >
+        <div className="admin-tabs">
           <button
             type="button"
             onClick={() => setAdminTab("books")}
-            style={{
-              padding: "10px 20px",
-              fontSize: "14px",
-              fontWeight: 600,
-              borderRadius: "10px",
-              border:
-                adminTab === "books"
-                  ? "2px solid #0f766e"
-                  : "1px solid #e2e8f0",
-              background: adminTab === "books" ? "#ecfdf5" : "#fff",
-              color: "#0f172a",
-              cursor: "pointer",
-              boxShadow:
-                adminTab === "books"
-                  ? "0 2px 8px rgba(15, 118, 110, 0.12)"
-                  : "none",
-            }}
+            className={
+              "admin-tab" +
+              (adminTab === "books" ? " admin-tab--active" : "")
+            }
           >
             Books
           </button>
           <button
             type="button"
             onClick={() => setAdminTab("orders")}
-            style={{
-              padding: "10px 20px",
-              fontSize: "14px",
-              fontWeight: 600,
-              borderRadius: "10px",
-              border:
-                adminTab === "orders"
-                  ? "2px solid #0f766e"
-                  : "1px solid #e2e8f0",
-              background: adminTab === "orders" ? "#ecfdf5" : "#fff",
-              color: "#0f172a",
-              cursor: "pointer",
-              boxShadow:
-                adminTab === "orders"
-                  ? "0 2px 8px rgba(15, 118, 110, 0.12)"
-                  : "none",
-            }}
+            className={
+              "admin-tab" +
+              (adminTab === "orders" ? " admin-tab--active" : "")
+            }
           >
             Orders
           </button>
         </div>
 
-        <h1
-          style={{
-            margin: "0 0 24px",
-            fontSize: "clamp(1.35rem, 3vw, 1.75rem)",
-            fontWeight: 700,
-            color: "#0f172a",
-            letterSpacing: "-0.02em",
-          }}
-        >
+        <h1 className="admin-page-title">
           {adminTab === "books" ? "Admin — Books" : "Admin — Orders"}
         </h1>
 
         {adminTab === "orders" ? (
-          <section
-            style={{
-              padding: "24px 26px",
-              background: "#fff",
-              borderRadius: "12px",
-              border: "1px solid rgba(15, 23, 42, 0.06)",
-              boxShadow: "0 4px 16px rgba(15, 23, 42, 0.06)",
-            }}
-          >
+          <section className="admin-card">
             {ordersLoading && (
-              <p style={{ color: "#666", margin: 0 }}>Loading orders…</p>
+              <div className="loading-block" aria-busy="true">
+                <div className="loading-spinner" />
+                <p className="loading-text">Loading orders…</p>
+              </div>
             )}
             {ordersError && (
-              <p style={{ color: "#c0392b", margin: "0 0 8px" }}>{ordersError}</p>
+              <p className="admin-login-error" style={{ margin: "0 0 8px" }}>
+                {ordersError}
+              </p>
             )}
             {!ordersLoading && !ordersError && orders.length === 0 && (
-              <p style={{ color: "#666", margin: 0 }}>No orders yet.</p>
+              <div className="store-empty-state">
+                <div className="store-empty-state-icon" aria-hidden="true">
+                  {"\u{1F4CB}"}
+                </div>
+                <h3 className="store-empty-state-title">No orders yet.</h3>
+              </div>
             )}
             {!ordersLoading && !ordersError && orders.length > 0 ? (
               <>
                 <div style={{ marginBottom: "16px" }}>
-                  <label style={{ ...labelStyle, marginBottom: "6px" }}>
-                    Filter by status
-                  </label>
+                  <label className="admin-label">Filter by status</label>
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    style={{ ...inputStyle, maxWidth: "280px", display: "block" }}
+                    className="admin-input admin-select admin-select--filter"
                   >
                     <option value="all">All Orders</option>
                     <option value="pending">Pending</option>
@@ -703,20 +487,13 @@ function Admin() {
                   </select>
                 </div>
                 {filteredOrders.length === 0 ? (
-                  <p style={{ color: "#666", margin: 0 }}>
+                  <p className="store-muted-text" style={{ margin: 0 }}>
                     No orders match this filter.
                   </p>
                 ) : (
               <ul className="admin-orders-list">
                 {filteredOrders.map((order) => (
-                  <li
-                    key={order._id}
-                    className="admin-order-card"
-                    style={{
-                      fontSize: "14px",
-                      color: "#334155",
-                    }}
-                  >
+                  <li key={order._id} className="admin-order-card">
                     <p style={{ margin: "0 0 10px", fontWeight: 700, color: "#0f172a" }}>
                       {order.customerName}{" "}
                       <span style={{ fontWeight: 500, color: "#64748b" }}>
@@ -743,18 +520,13 @@ function Admin() {
                           marginBottom: "8px",
                         }}
                       >
-                        <label style={{ ...labelStyle, marginBottom: 0 }}>
+                        <label className="admin-label admin-label--inline">
                           Status
                         </label>
                         <span
-                          style={{
-                            fontSize: "12px",
-                            fontWeight: 700,
-                            textTransform: "capitalize",
-                            padding: "6px 12px",
-                            borderRadius: "999px",
-                            ...orderStatusBadgeStyle(orderEffectiveStatus(order)),
-                          }}
+                          className={`status-badge status-badge--${orderEffectiveStatus(
+                            order
+                          )}`}
                         >
                           {orderEffectiveStatus(order)}
                         </span>
@@ -770,7 +542,7 @@ function Admin() {
                         onChange={(e) =>
                           handleOrderStatusChange(order._id, e.target.value)
                         }
-                        style={{ ...inputStyle, maxWidth: "240px", display: "block" }}
+                        className="admin-input admin-select admin-select--status"
                       >
                         <option value="pending">Pending</option>
                         <option value="confirmed">Confirmed</option>
@@ -809,74 +581,57 @@ function Admin() {
 
         {adminTab === "books" ? (
         <>
-        <section
-          style={{
-            marginBottom: "24px",
-            padding: "24px 26px",
-            background: "#fff",
-            borderRadius: "12px",
-            border: "1px solid rgba(15, 23, 42, 0.06)",
-            boxShadow: "0 4px 16px rgba(15, 23, 42, 0.06)",
-          }}
-        >
-          <h2
-            style={{
-              margin: "0 0 18px",
-              fontSize: "1.1rem",
-              fontWeight: 700,
-              color: "#0f172a",
-              letterSpacing: "-0.02em",
-            }}
-          >
+        <section className="admin-card">
+          <h2 className="admin-card-title">
             {editingId ? "Edit book" : "Add book"}
           </h2>
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: "12px" }}>
-              <label style={labelStyle}>Title</label>
+              <label className="admin-label">Title</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
-                style={inputStyle}
+                className="admin-input"
               />
             </div>
             <div style={{ marginBottom: "12px" }}>
-              <label style={labelStyle}>Author</label>
+              <label className="admin-label">Author</label>
               <input
                 type="text"
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
                 required
-                style={inputStyle}
+                className="admin-input"
               />
             </div>
             <div style={{ marginBottom: "12px" }}>
-              <label style={labelStyle}>Price</label>
+              <label className="admin-label">Price</label>
               <input
                 type="number"
                 min="0"
                 step="any"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                style={inputStyle}
+                className="admin-input"
               />
             </div>
             <div style={{ marginBottom: "12px" }}>
-              <label style={labelStyle}>Subject</label>
+              <label className="admin-label">Subject</label>
               <input
                 type="text"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                style={inputStyle}
+                className="admin-input"
               />
             </div>
             <div style={{ marginBottom: "12px" }}>
-              <label style={labelStyle}>Category</label>
+              <label className="admin-label">Category</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                style={{ ...inputStyle, maxWidth: "400px", display: "block" }}
+                className="admin-input admin-select"
               >
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
@@ -889,16 +644,7 @@ function Admin() {
                   <button
                     type="button"
                     onClick={() => setShowNewCategoryInput(true)}
-                    style={{
-                      padding: "8px 14px",
-                      background: "#fff",
-                      color: "#0f766e",
-                      border: "1px solid #99f6e4",
-                      borderRadius: "10px",
-                      fontSize: "13px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
+                    className="admin-btn-secondary"
                   >
                     + Add Category
                   </button>
@@ -910,21 +656,12 @@ function Admin() {
                       value={newCategory}
                       onChange={(e) => setNewCategory(e.target.value)}
                       placeholder="Enter new category"
-                      style={{ ...inputStyle, maxWidth: "260px" }}
+                      className="admin-input admin-input--narrow"
                     />
                     <button
                       type="button"
                       onClick={handleAddCategory}
-                      style={{
-                        padding: "8px 14px",
-                        background: "#0f766e",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "10px",
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                      }}
+                      className="admin-btn-primary"
                     >
                       Save
                     </button>
@@ -934,16 +671,7 @@ function Admin() {
                         setShowNewCategoryInput(false);
                         setNewCategory("");
                       }}
-                      style={{
-                        padding: "8px 14px",
-                        background: "#fff",
-                        color: "#475569",
-                        border: "1px solid #e2e8f0",
-                        borderRadius: "10px",
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                      }}
+                      className="admin-btn-secondary"
                     >
                       Cancel
                     </button>
@@ -952,13 +680,13 @@ function Admin() {
               </div>
             </div>
             <div style={{ marginBottom: "16px" }}>
-              <label style={labelStyle}>Image URL</label>
+              <label className="admin-label">Image URL</label>
               <input
                 type="text"
                 placeholder="Image URL"
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
-                style={inputStyle}
+                className="admin-input"
               />
               {image && (
                 <img
@@ -977,19 +705,7 @@ function Admin() {
               <button
                 type="submit"
                 disabled={submitting}
-                style={{
-                  padding: "10px 20px",
-                  background: submitting ? "#99f6e4" : "#0f766e",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "10px",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  cursor: submitting ? "not-allowed" : "pointer",
-                  boxShadow: submitting
-                    ? "none"
-                    : "0 2px 8px rgba(15, 118, 110, 0.35)",
-                }}
+                className="admin-btn-primary"
               >
                 {submitting
                   ? editingId
@@ -1004,16 +720,7 @@ function Admin() {
                   type="button"
                   disabled={submitting}
                   onClick={clearForm}
-                  style={{
-                    padding: "10px 18px",
-                    background: "#fff",
-                    color: "#444",
-                    border: "1px solid #dde1e6",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    fontWeight: 600,
-                    cursor: submitting ? "not-allowed" : "pointer",
-                  }}
+                  className="admin-btn-secondary"
                 >
                   Cancel
                 </button>
@@ -1022,32 +729,26 @@ function Admin() {
           </form>
         </section>
 
-        <section
-          style={{
-            padding: "24px 26px",
-            background: "#fff",
-            borderRadius: "12px",
-            border: "1px solid rgba(15, 23, 42, 0.06)",
-            boxShadow: "0 4px 16px rgba(15, 23, 42, 0.06)",
-          }}
-        >
-          <h2
-            style={{
-              margin: "0 0 18px",
-              fontSize: "1.1rem",
-              fontWeight: 700,
-              color: "#0f172a",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            All books
-          </h2>
-          {loading && <p style={{ color: "#666", margin: 0 }}>Loading…</p>}
+        <section className="admin-card">
+          <h2 className="admin-card-title">All books</h2>
+          {loading && (
+            <div className="loading-block" aria-busy="true">
+              <div className="loading-spinner" />
+              <p className="loading-text">Loading…</p>
+            </div>
+          )}
           {error && (
-            <p style={{ color: "#c0392b", margin: "0 0 8px" }}>{error}</p>
+            <p className="admin-login-error" style={{ margin: "0 0 8px" }}>
+              {error}
+            </p>
           )}
           {!loading && !error && books.length === 0 && (
-            <p style={{ color: "#666", margin: 0 }}>No books yet.</p>
+            <div className="store-empty-state">
+              <div className="store-empty-state-icon" aria-hidden="true">
+                {"\u{1F4DA}"}
+              </div>
+              <h3 className="store-empty-state-title">No books yet.</h3>
+            </div>
           )}
           {!loading && books.length > 0 && (
             <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
@@ -1111,32 +812,14 @@ function Admin() {
                     <button
                       type="button"
                       onClick={() => handleEdit(book)}
-                      style={{
-                        padding: "7px 14px",
-                        background: "#fff",
-                        color: "#0f766e",
-                        border: "1px solid #99f6e4",
-                        borderRadius: "10px",
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                      }}
+                      className="admin-btn-secondary"
                     >
                       Edit
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDelete(book._id || book.id)}
-                      style={{
-                        padding: "6px 12px",
-                        background: "#fff",
-                        color: "#c0392b",
-                        border: "1px solid #e6b8b8",
-                        borderRadius: "8px",
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                      }}
+                      className="admin-btn-danger"
                     >
                       Delete
                     </button>

@@ -4,17 +4,6 @@ import { BOOKS_URL, ORDERS_URL } from "./apiConfig";
 
 const BOOK_IMAGE_PLACEHOLDER = "https://via.placeholder.com/150";
 
-const CLASS_FILTERS = [
-  "All",
-  "Class 6",
-  "Class 7",
-  "Class 8",
-  "Class 9",
-  "Class 10",
-  "Class 11",
-  "Class 12",
-];
-
 function formatPriceDisplay(price) {
   const hasPrice = price !== undefined && price !== null && price !== "";
   return hasPrice ? `₹${price}` : "₹/N/A";
@@ -42,13 +31,6 @@ function trackStatusPillClass(status) {
 
 function normalizeIndianPhone(value) {
   return String(value ?? "").replace(/\D/g, "").slice(-10);
-}
-
-function titleMatchesClass(title, selectedClass) {
-  if (selectedClass === "All") return true;
-  const num = selectedClass.replace(/^Class\s+/i, "").trim();
-  const re = new RegExp(`class\\s*${num}\\b`, "i");
-  return re.test(title || "");
 }
 
 function buildWhatsAppOrderUrl(title, price) {
@@ -214,6 +196,18 @@ function App() {
 
   const query = search.trim().toLowerCase();
 
+  const classes = [
+    "All",
+    ...Array.from(
+      new Set(
+        books
+          .map((book) => book.class)
+          .filter((v) => typeof v === "string" && v.trim())
+          .map((v) => v.trim())
+      )
+    ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })),
+  ];
+
   const categories = [
     "All",
     ...Array.from(
@@ -222,7 +216,9 @@ function App() {
   ];
 
   const filteredBooks = books.filter((book) => {
-    if (!titleMatchesClass(book.title, selectedClass)) return false;
+    const matchesClass =
+      selectedClass === "All" || (book.class || "") === selectedClass;
+    if (!matchesClass) return false;
     const matchesCategory =
       selectedCategory === "All" ||
       (book.category || "General") === selectedCategory;
@@ -742,7 +738,7 @@ function App() {
             Class
           </p>
           <div className="filter-row">
-            {CLASS_FILTERS.map((label) => {
+            {classes.map((label) => {
               const active = selectedClass === label;
               return (
                 <button

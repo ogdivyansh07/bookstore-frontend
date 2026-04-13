@@ -142,7 +142,10 @@ function App() {
       setOrderPhone("");
       setOrderAddress("");
       setShowOrderForm(false);
-      setOrderSuccess(data.message || "Order placed successfully.");
+      const raw = typeof data.status === "string" ? data.status : "pending";
+      const statusLabel =
+        raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+      setOrderSuccess(`Order placed successfully (${statusLabel})`);
     } catch (err) {
       console.error("[place-order]", err);
       setOrderError("Could not reach server. Please try again.");

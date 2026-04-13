@@ -231,6 +231,7 @@ function Admin() {
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState(null);
+  const [statusUpdatingId, setStatusUpdatingId] = useState(null);
 
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
@@ -311,6 +312,43 @@ function Admin() {
   useEffect(() => {
     if (token && adminTab === "orders") loadOrders();
   }, [token, adminTab, loadOrders]);
+
+  const handleOrderStatusChange = async (orderId, status) => {
+    if (!token || !orderId) return;
+    const oid = String(orderId);
+    const prev = orders.find((o) => String(o._id) === oid);
+    const prevStatus = prev && prev.status ? prev.status : "pending";
+    if (prevStatus === status) return;
+
+    setStatusUpdatingId(oid);
+    setOrdersError(null);
+    try {
+      const res = await fetch(`${ORDERS_URL}/${oid}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+      if (res.status === 401) {
+        handleSessionExpired();
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setOrdersError(data.message || `Update failed (${res.status})`);
+        return;
+      }
+      setOrders((prevList) =>
+        prevList.map((o) => (String(o._id) === oid ? { ...o, ...data } : o))
+      );
+    } catch (e) {
+      setOrdersError(e.message || "Could not update status");
+    } finally {
+      setStatusUpdatingId(null);
+    }
+  };
 
   const handleDelete = async (id) => {
     if (!id || !token) return;
@@ -554,6 +592,28 @@ function Admin() {
                     <p style={{ margin: "0 0 8px", color: "#555", whiteSpace: "pre-wrap" }}>
                       {order.address}
                     </p>
+                    <div style={{ marginBottom: "12px" }}>
+                      <label style={{ ...labelStyle, marginBottom: "6px" }}>
+                        Status
+                      </label>
+                      <select
+                        value={
+                          order.status === "confirmed" ||
+                          order.status === "delivered"
+                            ? order.status
+                            : "pending"
+                        }
+                        disabled={statusUpdatingId === String(order._id)}
+                        onChange={(e) =>
+                          handleOrderStatusChange(order._id, e.target.value)
+                        }
+                        style={{ ...inputStyle, maxWidth: "240px", display: "block" }}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="delivered">Delivered</option>
+                      </select>
+                    </div>
                     <p style={{ margin: "0 0 6px", color: "#666" }}>
                       <strong>Books:</strong>
                     </p>

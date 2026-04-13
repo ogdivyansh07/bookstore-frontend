@@ -1,12 +1,12 @@
 import React from "react";
-import { Button } from "components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from "components/ui/carousel";
+} from "@/components/ui/carousel";
 
 const galleryItems = [
   {
@@ -64,4 +64,5 @@ function Gallery4() {
   );
 }
 
+export { Gallery4 };
 export default Gallery4;

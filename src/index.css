@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Compatibility token block for shadcn/Tailwind examples */
+:root {
+  --background-rgb: 255 255 255;
+  --foreground-rgb: 17 24 39;
+  --primary-rgb: 37 99 235;
+  --primary-foreground-rgb: 255 255 255;
+  --muted-rgb: 243 244 246;
+  --muted-foreground-rgb: 107 114 128;
+  --border-rgb: 229 231 235;
+  --input-rgb: 229 231 235;
+}
+
 :root {
   --background: #0f0e0d;
   --bg-raised: #181714;

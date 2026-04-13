@@ -3,7 +3,7 @@ import Admin from "./Admin";
 import { BOOKS_URL, ORDERS_URL } from "./apiConfig";
 import { Button } from "components/ui/button";
 import { Input } from "components/ui/input";
-import Gallery4 from "components/blocks/gallery4";
+import { Gallery4 } from "@/components/blocks/gallery4";
 import {
   Dialog as ShadDialog,
   DialogTrigger as ShadDialogTrigger,

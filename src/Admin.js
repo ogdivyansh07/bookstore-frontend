@@ -32,6 +32,32 @@ const labelStyle = {
   color: "#555",
 };
 
+function orderEffectiveStatus(order) {
+  const s = order && order.status;
+  return s === "confirmed" || s === "delivered" ? s : "pending";
+}
+
+function orderStatusBadgeStyle(status) {
+  const styles = {
+    pending: {
+      background: "#fff3cd",
+      color: "#856404",
+      border: "1px solid #ffc107",
+    },
+    confirmed: {
+      background: "#cfe2ff",
+      color: "#084298",
+      border: "1px solid #6ea8fe",
+    },
+    delivered: {
+      background: "#d1e7dd",
+      color: "#0f5132",
+      border: "1px solid #75b798",
+    },
+  };
+  return styles[status] || styles.pending;
+}
+
 function AdminLoginScreen({ onSuccess, sessionExpired, onClearExpired }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -232,6 +258,7 @@ function Admin() {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState(null);
   const [statusUpdatingId, setStatusUpdatingId] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("all");
 
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
@@ -312,6 +339,13 @@ function Admin() {
   useEffect(() => {
     if (token && adminTab === "orders") loadOrders();
   }, [token, adminTab, loadOrders]);
+
+  const filteredOrders =
+    filterStatus === "all"
+      ? orders
+      : orders.filter(
+          (order) => orderEffectiveStatus(order) === filterStatus
+        );
 
   const handleOrderStatusChange = async (orderId, status) => {
     if (!token || !orderId) return;
@@ -571,9 +605,30 @@ function Admin() {
             {!ordersLoading && !ordersError && orders.length === 0 && (
               <p style={{ color: "#666", margin: 0 }}>No orders yet.</p>
             )}
-            {!ordersLoading && orders.length > 0 && (
+            {!ordersLoading && !ordersError && orders.length > 0 ? (
+              <>
+                <div style={{ marginBottom: "16px" }}>
+                  <label style={{ ...labelStyle, marginBottom: "6px" }}>
+                    Filter by status
+                  </label>
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    style={{ ...inputStyle, maxWidth: "280px", display: "block" }}
+                  >
+                    <option value="all">All Orders</option>
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="delivered">Delivered</option>
+                  </select>
+                </div>
+                {filteredOrders.length === 0 ? (
+                  <p style={{ color: "#666", margin: 0 }}>
+                    No orders match this filter.
+                  </p>
+                ) : (
               <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
-                {orders.map((order) => (
+                {filteredOrders.map((order) => (
                   <li
                     key={order._id}
                     style={{
@@ -593,9 +648,31 @@ function Admin() {
                       {order.address}
                     </p>
                     <div style={{ marginBottom: "12px" }}>
-                      <label style={{ ...labelStyle, marginBottom: "6px" }}>
-                        Status
-                      </label>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          alignItems: "center",
+                          gap: "8px",
+                          marginBottom: "6px",
+                        }}
+                      >
+                        <label style={{ ...labelStyle, marginBottom: 0 }}>
+                          Status
+                        </label>
+                        <span
+                          style={{
+                            fontSize: "12px",
+                            fontWeight: 700,
+                            textTransform: "capitalize",
+                            padding: "3px 10px",
+                            borderRadius: "999px",
+                            ...orderStatusBadgeStyle(orderEffectiveStatus(order)),
+                          }}
+                        >
+                          {orderEffectiveStatus(order)}
+                        </span>
+                      </div>
                       <select
                         value={
                           order.status === "confirmed" ||
@@ -638,7 +715,9 @@ function Admin() {
                   </li>
                 ))}
               </ul>
-            )}
+                )}
+              </>
+            ) : null}
           </section>
         ) : null}
 

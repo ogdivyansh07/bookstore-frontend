@@ -221,6 +221,17 @@ function App() {
     return title.includes(query) || author.includes(query);
   });
 
+  const groupedBooks = filteredBooks.reduce((acc, book) => {
+    const categoryName = book.category || "General";
+    if (!acc[categoryName]) acc[categoryName] = [];
+    acc[categoryName].push(book);
+    return acc;
+  }, {});
+
+  const categoryKeys = Object.keys(groupedBooks).sort((a, b) =>
+    a.localeCompare(b, undefined, { sensitivity: "base" })
+  );
+
   const shell = {
     maxWidth: "1200px",
     margin: "0 auto",
@@ -510,6 +521,22 @@ function App() {
         .store-btn-remove:hover {
           background: #fef8f7;
           border-color: #c45500;
+        }
+        .store-category-section {
+          margin-bottom: 44px;
+        }
+        .store-category-section:last-of-type {
+          margin-bottom: 0;
+        }
+        .store-category-heading {
+          margin: 0 0 22px;
+          font-size: clamp(1.3rem, 3.2vw, 1.65rem);
+          font-weight: 800;
+          color: var(--store-text);
+          letter-spacing: -0.03em;
+          line-height: 1.25;
+          padding-bottom: 12px;
+          border-bottom: 2px solid rgba(15, 118, 110, 0.22);
         }
         .book-grid {
           display: grid;
@@ -965,53 +992,62 @@ function App() {
             : null}
         </div>
 
-        {/* Book grid */}
-        <div className="book-grid">
-          {filteredBooks.map((book, index) => (
-            <article
-              key={book._id}
-              className="book-card"
-              style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}
-            >
-              <div className="book-card-media">
-                <img
-                  src={
-                    String(book.image ?? "").trim() || BOOK_IMAGE_PLACEHOLDER
-                  }
-                  alt={book.title || ""}
-                  onError={(e) => {
-                    if (e.currentTarget.src !== BOOK_IMAGE_PLACEHOLDER) {
-                      e.currentTarget.src = BOOK_IMAGE_PLACEHOLDER;
-                    }
+        {/* Books by category */}
+        {categoryKeys.map((categoryName) => (
+          <div key={categoryName} className="store-category-section">
+            <h2 className="store-category-heading">{categoryName}</h2>
+            <div className="book-grid">
+              {groupedBooks[categoryName].map((book, index) => (
+                <article
+                  key={book._id}
+                  className="book-card"
+                  style={{
+                    animationDelay: `${Math.min(index, 12) * 40}ms`,
                   }}
-                />
-              </div>
-              <div className="book-card-body">
-                <h3>{book.title}</h3>
-                <p className="book-card-meta">by {book.author}</p>
-                <p className="book-card-price">{formatPriceDisplay(book.price)}</p>
+                >
+                  <div className="book-card-media">
+                    <img
+                      src={
+                        String(book.image ?? "").trim() || BOOK_IMAGE_PLACEHOLDER
+                      }
+                      alt={book.title || ""}
+                      onError={(e) => {
+                        if (e.currentTarget.src !== BOOK_IMAGE_PLACEHOLDER) {
+                          e.currentTarget.src = BOOK_IMAGE_PLACEHOLDER;
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="book-card-body">
+                    <h3>{book.title}</h3>
+                    <p className="book-card-meta">by {book.author}</p>
+                    <p className="book-card-price">
+                      {formatPriceDisplay(book.price)}
+                    </p>
 
-                <div className="book-card-actions">
-                  <button
-                    type="button"
-                    className="store-btn store-btn-cart"
-                    onClick={() => addToCart(book)}
-                  >
-                    Add to Cart
-                  </button>
-                  <a
-                    className="store-btn-wa"
-                    href={buildWhatsAppOrderUrl(book.title, book.price)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Order on WhatsApp
-                  </a>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
+                    <div className="book-card-actions">
+                      <button
+                        type="button"
+                        className="store-btn store-btn-cart"
+                        onClick={() => addToCart(book)}
+                      >
+                        Add to Cart
+                      </button>
+                      <a
+                        className="store-btn-wa"
+                        href={buildWhatsAppOrderUrl(book.title, book.price)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Order on WhatsApp
+                      </a>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        ))}
 
         {filteredBooks.length === 0 && books.length > 0 && (
           <p className="store-empty-hint">

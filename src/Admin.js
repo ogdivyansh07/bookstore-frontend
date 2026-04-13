@@ -268,6 +268,7 @@ function Admin() {
   const [price, setPrice] = useState("");
   const [bookClass, setBookClass] = useState("");
   const [subject, setSubject] = useState("");
+  const [category, setCategory] = useState("");
   const [image, setImage] = useState("");
   const [editingId, setEditingId] = useState(null);
 
@@ -408,6 +409,7 @@ function Admin() {
         setPrice("");
         setBookClass("");
         setSubject("");
+        setCategory("");
         setImage("");
       }
       await loadBooks();
@@ -426,6 +428,7 @@ function Admin() {
     );
     setBookClass(book.class ?? "");
     setSubject(book.subject ?? "");
+    setCategory(book.category ?? "");
     setImage(book.image ?? "");
   };
 
@@ -443,6 +446,7 @@ function Admin() {
     setPrice("");
     setBookClass("");
     setSubject("");
+    setCategory("");
     setImage("");
   };
 
@@ -450,12 +454,14 @@ function Admin() {
     e.preventDefault();
     if (!token) return;
     setSubmitting(true);
+    const catTrim = typeof category === "string" ? category.trim() : "";
     const payload = {
       title,
       author,
       price: price === "" ? undefined : Number(price),
       class: bookClass,
       subject,
+      category: catTrim || "General",
       image,
     };
     try {
@@ -856,6 +862,16 @@ function Admin() {
                 style={inputStyle}
               />
             </div>
+            <div style={{ marginBottom: "12px" }}>
+              <label style={labelStyle}>Category</label>
+              <input
+                type="text"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="Category (e.g. Fiction)"
+                style={inputStyle}
+              />
+            </div>
             <div style={{ marginBottom: "16px" }}>
               <label style={labelStyle}>Image URL</label>
               <input
@@ -1009,6 +1025,7 @@ function Admin() {
                           : ""}
                         {book.class ? ` — ${book.class}` : ""}
                         {book.subject ? ` — ${book.subject}` : ""}
+                        {` — ${book.category || "General"}`}
                       </span>
                     </div>
                   </div>

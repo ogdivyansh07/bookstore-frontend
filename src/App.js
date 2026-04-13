@@ -267,7 +267,7 @@ function App() {
           <span className="store-nav-brand-icon" aria-hidden="true">
             {"\u{1F4DA}"}
           </span>
-          <span className="store-nav-brand-text">BookStore</span>
+          <span className="store-nav-brand-text">The Bookstore</span>
         </a>
         <div className="store-nav-actions">
           <a className="store-nav-link" href="#/admin">

@@ -33,6 +33,10 @@ function formatOrderStatusLabel(status) {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 }
 
+function normalizeIndianPhone(value) {
+  return String(value ?? "").replace(/\D/g, "").slice(-10);
+}
+
 function titleMatchesClass(title, selectedClass) {
   if (selectedClass === "All") return true;
   const num = selectedClass.replace(/^Class\s+/i, "").trim();
@@ -125,9 +129,14 @@ function App() {
   const handlePlaceOrderSubmit = async (e) => {
     e.preventDefault();
     if (cart.length === 0) return;
-    setOrderSubmitting(true);
     setOrderError("");
     setOrderSuccess("");
+    const normalizedPhone = normalizeIndianPhone(orderPhone);
+    if (normalizedPhone.length !== 10) {
+      setOrderError("Enter a valid 10-digit phone number");
+      return;
+    }
+    setOrderSubmitting(true);
     const booksPayload = cart.map(({ cartLineId, ...book }) => book);
     const totalPrice = cartTotalNumeric(cart);
     try {
@@ -138,7 +147,7 @@ function App() {
           books: booksPayload,
           totalPrice,
           customerName: orderName.trim(),
-          phone: orderPhone.trim(),
+          phone: normalizedPhone,
           address: orderAddress.trim(),
         }),
       });
@@ -165,17 +174,17 @@ function App() {
   };
 
   const handleTrackOrder = async () => {
-    const phone = trackPhone.trim();
     setTrackError("");
-    if (!phone) {
+    const normalizedPhone = normalizeIndianPhone(trackPhone);
+    if (normalizedPhone.length !== 10) {
       setTrackedOrders(null);
-      setTrackError("Enter the phone number you used when placing the order.");
+      setTrackError("Please enter a valid 10-digit phone number");
       return;
     }
     setTrackLoading(true);
     try {
       const res = await fetch(
-        `${ORDERS_URL}/track/${encodeURIComponent(phone)}`
+        `${ORDERS_URL}/track/${encodeURIComponent(normalizedPhone)}`
       );
       const data = await res.json().catch(() => null);
       if (!res.ok) {
@@ -733,11 +742,23 @@ function App() {
                   className="store-search"
                   style={{ maxWidth: "100%" }}
                   type="tel"
+                  inputMode="numeric"
+                  maxLength={14}
+                  placeholder="Enter phone (e.g. 9876543210)"
                   value={orderPhone}
                   onChange={(e) => setOrderPhone(e.target.value)}
                   required
                   autoComplete="tel"
                 />
+                <p
+                  style={{
+                    margin: "6px 0 0",
+                    fontSize: "13px",
+                    color: "#767676",
+                  }}
+                >
+                  Supports formats like +91, spaces, dashes
+                </p>
               </div>
               <div style={{ marginBottom: "16px" }}>
                 <label className="store-label" htmlFor="order-address">
@@ -816,13 +837,18 @@ function App() {
           <p style={{ margin: "0 0 14px", fontSize: "14px", color: "#565959" }}>
             Enter the phone number from your order to see status and details.
           </p>
+          <p style={{ margin: "0 0 10px", fontSize: "13px", color: "#767676" }}>
+            Supports formats like +91, spaces, dashes (10-digit Indian mobile).
+          </p>
           <div className="store-track-row">
             <input
               className="store-search"
               type="tel"
+              inputMode="numeric"
+              maxLength={14}
+              placeholder="Enter phone (e.g. 9876543210)"
               value={trackPhone}
               onChange={(e) => setTrackPhone(e.target.value)}
-              placeholder="Phone number"
               style={{ flex: "1 1 220px", maxWidth: "360px" }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleTrackOrder();

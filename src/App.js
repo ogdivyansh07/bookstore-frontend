@@ -1,6 +1,17 @@
 import { useEffect, useState } from "react";
 import Admin from "./Admin";
 import { BOOKS_URL, ORDERS_URL } from "./apiConfig";
+import { Button } from "components/ui/button";
+import { Input } from "components/ui/input";
+import Gallery4 from "components/blocks/gallery4";
+import {
+  Dialog as ShadDialog,
+  DialogTrigger as ShadDialogTrigger,
+  DialogContent as ShadDialogContent,
+  DialogHeader as ShadDialogHeader,
+  DialogTitle as ShadDialogTitle,
+  DialogDescription as ShadDialogDescription,
+} from "components/ui/dialog";
 
 const BOOK_IMAGE_PLACEHOLDER = "https://via.placeholder.com/150";
 
@@ -301,6 +312,26 @@ function App() {
       </nav>
 
       <main className="store-main">
+        <div className="store-panel">
+          <p className="store-label">UI Components Test</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
+            <Button>Test Button</Button>
+            <Input placeholder="Test input" style={{ maxWidth: "220px" }} />
+            <ShadDialog>
+              <ShadDialogTrigger asChild>
+                <Button variant="outline">Open Dialog</Button>
+              </ShadDialogTrigger>
+              <ShadDialogContent>
+                <ShadDialogHeader>
+                  <ShadDialogTitle>Test Dialog</ShadDialogTitle>
+                  <ShadDialogDescription>
+                    Your shadcn-style dialog is rendering correctly.
+                  </ShadDialogDescription>
+                </ShadDialogHeader>
+              </ShadDialogContent>
+            </ShadDialog>
+          </div>
+        </div>
 
         {/* Search + category filters */}
         <div className="store-panel">
@@ -691,6 +722,10 @@ function App() {
             </div>
           </Modal>
         )}
+
+        <div style={{ marginTop: "48px" }}>
+          <Gallery4 />
+        </div>
       </main>
     </div>
   );

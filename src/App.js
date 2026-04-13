@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Admin from "./Admin";
-import { BOOKS_URL } from "./apiConfig";
+import { BOOKS_URL, ORDERS_URL } from "./apiConfig";
 
 const BOOK_IMAGE_PLACEHOLDER = "https://via.placeholder.com/150";
 
@@ -18,6 +18,13 @@ const CLASS_FILTERS = [
 function formatPriceDisplay(price) {
   const hasPrice = price !== undefined && price !== null && price !== "";
   return hasPrice ? `₹${price}` : "₹/N/A";
+}
+
+function cartTotalNumeric(cartLines) {
+  return cartLines.reduce((sum, line) => {
+    const n = Number(line.price);
+    return sum + (Number.isFinite(n) ? n : 0);
+  }, 0);
 }
 
 function titleMatchesClass(title, selectedClass) {
@@ -54,6 +61,13 @@ function App() {
   const [routeHash, setRouteHash] = useState(() => window.location.hash || "#/");
   const [books, setBooks] = useState([]);
   const [cart, setCart] = useState([]);
+  const [showOrderForm, setShowOrderForm] = useState(false);
+  const [orderName, setOrderName] = useState("");
+  const [orderPhone, setOrderPhone] = useState("");
+  const [orderAddress, setOrderAddress] = useState("");
+  const [orderSubmitting, setOrderSubmitting] = useState(false);
+  const [orderError, setOrderError] = useState("");
+  const [orderSuccess, setOrderSuccess] = useState("");
   const [search, setSearch] = useState("");
   const [selectedClass, setSelectedClass] = useState("All");
 
@@ -76,6 +90,7 @@ function App() {
     return <Admin />;
   }
   const addToCart = (book) => {
+    setOrderSuccess("");
     const cartLineId = Date.now() + Math.random();
 
     setCart((prev) => [
@@ -89,6 +104,51 @@ function App() {
 
   const clearCart = () => {
     setCart([]);
+    setShowOrderForm(false);
+    setOrderName("");
+    setOrderPhone("");
+    setOrderAddress("");
+    setOrderError("");
+    setOrderSuccess("");
+  };
+
+  const handlePlaceOrderSubmit = async (e) => {
+    e.preventDefault();
+    if (cart.length === 0) return;
+    setOrderSubmitting(true);
+    setOrderError("");
+    setOrderSuccess("");
+    const booksPayload = cart.map(({ cartLineId, ...book }) => book);
+    const totalPrice = cartTotalNumeric(cart);
+    try {
+      const res = await fetch(ORDERS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          books: booksPayload,
+          totalPrice,
+          customerName: orderName.trim(),
+          phone: orderPhone.trim(),
+          address: orderAddress.trim(),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setOrderError(data.message || `Order failed (${res.status})`);
+        return;
+      }
+      setCart([]);
+      setOrderName("");
+      setOrderPhone("");
+      setOrderAddress("");
+      setShowOrderForm(false);
+      setOrderSuccess(data.message || "Order placed successfully.");
+    } catch (err) {
+      console.error("[place-order]", err);
+      setOrderError("Could not reach server. Please try again.");
+    } finally {
+      setOrderSubmitting(false);
+    }
   };
 
   const query = search.trim().toLowerCase();
@@ -447,6 +507,36 @@ function App() {
           color: #565959;
           font-size: 15px;
         }
+        .store-order-panel {
+          margin-top: 18px;
+          padding-top: 18px;
+          border-top: 1px solid #e3e6e6;
+        }
+        .store-order-success {
+          margin: 0 0 14px;
+          padding: 12px 14px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #0f5132;
+          background: #d1e7dd;
+          border: 1px solid #badbcc;
+          border-radius: 8px;
+        }
+        .store-order-error {
+          margin: 0 0 14px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #b12704;
+        }
+        .store-btn-primary {
+          background: #007185;
+          color: #fff;
+          box-shadow: 0 2px 6px rgba(0, 113, 133, 0.25);
+        }
+        .store-btn-primary:hover:not(:disabled) {
+          background: #005f6f;
+          box-shadow: 0 4px 12px rgba(0, 113, 133, 0.3);
+        }
       `}</style>
       <div style={shell}>
         <header className="store-header">
@@ -522,8 +612,104 @@ function App() {
                   Order all on WhatsApp
                 </button>
               )}
+              <button
+                type="button"
+                className="store-btn store-btn-primary"
+                disabled={cart.length === 0}
+                onClick={() => {
+                  setShowOrderForm((v) => !v);
+                  setOrderError("");
+                  setOrderSuccess("");
+                }}
+              >
+                {showOrderForm ? "Hide order form" : "Place order"}
+              </button>
             </div>
           </div>
+
+          {orderSuccess ? (
+            <p className="store-order-success" role="status">
+              {orderSuccess}
+            </p>
+          ) : null}
+
+          {showOrderForm && cart.length > 0 ? (
+            <form className="store-order-panel" onSubmit={handlePlaceOrderSubmit}>
+              <p className="store-label">Checkout</p>
+              <p style={{ margin: "0 0 14px", fontSize: "14px", color: "#565959" }}>
+                Total:{" "}
+                <strong style={{ color: "#0f1111" }}>
+                  ₹{cartTotalNumeric(cart).toFixed(2)}
+                </strong>
+              </p>
+              {orderError ? (
+                <p className="store-order-error" role="alert">
+                  {orderError}
+                </p>
+              ) : null}
+              <div style={{ marginBottom: "12px" }}>
+                <label className="store-label" htmlFor="order-name">
+                  Name
+                </label>
+                <input
+                  id="order-name"
+                  className="store-search"
+                  style={{ maxWidth: "100%" }}
+                  value={orderName}
+                  onChange={(e) => setOrderName(e.target.value)}
+                  required
+                  autoComplete="name"
+                />
+              </div>
+              <div style={{ marginBottom: "12px" }}>
+                <label className="store-label" htmlFor="order-phone">
+                  Phone
+                </label>
+                <input
+                  id="order-phone"
+                  className="store-search"
+                  style={{ maxWidth: "100%" }}
+                  type="tel"
+                  value={orderPhone}
+                  onChange={(e) => setOrderPhone(e.target.value)}
+                  required
+                  autoComplete="tel"
+                />
+              </div>
+              <div style={{ marginBottom: "16px" }}>
+                <label className="store-label" htmlFor="order-address">
+                  Address
+                </label>
+                <textarea
+                  id="order-address"
+                  value={orderAddress}
+                  onChange={(e) => setOrderAddress(e.target.value)}
+                  required
+                  rows={3}
+                  autoComplete="street-address"
+                  style={{
+                    width: "100%",
+                    maxWidth: "100%",
+                    padding: "11px 16px",
+                    fontSize: "15px",
+                    border: "1px solid #d5d9d9",
+                    borderRadius: "8px",
+                    outline: "none",
+                    boxSizing: "border-box",
+                    fontFamily: "inherit",
+                    resize: "vertical",
+                  }}
+                />
+              </div>
+              <button
+                type="submit"
+                className="store-btn store-btn-primary"
+                disabled={orderSubmitting}
+              >
+                {orderSubmitting ? "Submitting…" : "Submit order"}
+              </button>
+            </form>
+          ) : null}
 
           {cart.length === 0 ? (
             <p style={{ margin: 0, color: "#767676", fontSize: "15px", lineHeight: 1.5 }}>

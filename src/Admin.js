@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   BOOKS_URL,
+  ORDERS_URL,
   ADMIN_LOGIN_URL,
   TOKEN_STORAGE_KEY,
 } from "./apiConfig";
@@ -222,10 +223,14 @@ if (_initStored && _initExpired) localStorage.removeItem(TOKEN_STORAGE_KEY);
 function Admin() {
   const [token, setToken] = useState(_initExpired ? null : _initStored);
   const [sessionExpired, setSessionExpired] = useState(_initExpired);
+  const [adminTab, setAdminTab] = useState("books");
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState(null);
 
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
@@ -277,8 +282,35 @@ function Admin() {
   }, [handleSessionExpired]);
 
   useEffect(() => {
-    if (token) loadBooks();
-  }, [token, loadBooks]);
+    if (token && adminTab === "books") loadBooks();
+  }, [token, adminTab, loadBooks]);
+
+  const loadOrders = useCallback(async () => {
+    if (!token) return;
+    setOrdersError(null);
+    setOrdersLoading(true);
+    try {
+      const res = await fetch(ORDERS_URL, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 401) {
+        handleSessionExpired();
+        return;
+      }
+      if (!res.ok) throw new Error(`Failed to load orders (${res.status})`);
+      const data = await res.json();
+      setOrders(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setOrdersError(e.message || "Could not load orders");
+      setOrders([]);
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [token, handleSessionExpired]);
+
+  useEffect(() => {
+    if (token && adminTab === "orders") loadOrders();
+  }, [token, adminTab, loadOrders]);
 
   const handleDelete = async (id) => {
     if (!id || !token) return;
@@ -437,10 +469,121 @@ function Admin() {
           </button>
         </div>
 
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            marginBottom: "20px",
+            flexWrap: "wrap",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setAdminTab("books")}
+            style={{
+              padding: "10px 18px",
+              fontSize: "14px",
+              fontWeight: 600,
+              borderRadius: "8px",
+              border: adminTab === "books" ? "2px solid #0d6efd" : "1px solid #dde1e6",
+              background: adminTab === "books" ? "#e7f1ff" : "#fff",
+              color: "#1a1a1a",
+              cursor: "pointer",
+            }}
+          >
+            Books
+          </button>
+          <button
+            type="button"
+            onClick={() => setAdminTab("orders")}
+            style={{
+              padding: "10px 18px",
+              fontSize: "14px",
+              fontWeight: 600,
+              borderRadius: "8px",
+              border: adminTab === "orders" ? "2px solid #0d6efd" : "1px solid #dde1e6",
+              background: adminTab === "orders" ? "#e7f1ff" : "#fff",
+              color: "#1a1a1a",
+              cursor: "pointer",
+            }}
+          >
+            Orders
+          </button>
+        </div>
+
         <h1 style={{ margin: "0 0 20px", fontSize: "1.5rem", color: "#1a1a1a" }}>
-          Admin — Books
+          {adminTab === "books" ? "Admin — Books" : "Admin — Orders"}
         </h1>
 
+        {adminTab === "orders" ? (
+          <section
+            style={{
+              padding: "18px 20px",
+              background: "#fff",
+              borderRadius: "12px",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+            }}
+          >
+            {ordersLoading && (
+              <p style={{ color: "#666", margin: 0 }}>Loading orders…</p>
+            )}
+            {ordersError && (
+              <p style={{ color: "#c0392b", margin: "0 0 8px" }}>{ordersError}</p>
+            )}
+            {!ordersLoading && !ordersError && orders.length === 0 && (
+              <p style={{ color: "#666", margin: 0 }}>No orders yet.</p>
+            )}
+            {!ordersLoading && orders.length > 0 && (
+              <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                {orders.map((order) => (
+                  <li
+                    key={order._id}
+                    style={{
+                      padding: "16px 0",
+                      borderBottom: "1px solid #eee",
+                      fontSize: "14px",
+                      color: "#333",
+                    }}
+                  >
+                    <p style={{ margin: "0 0 8px", fontWeight: 700 }}>
+                      {order.customerName}{" "}
+                      <span style={{ fontWeight: 400, color: "#666" }}>
+                        — {order.phone}
+                      </span>
+                    </p>
+                    <p style={{ margin: "0 0 8px", color: "#555", whiteSpace: "pre-wrap" }}>
+                      {order.address}
+                    </p>
+                    <p style={{ margin: "0 0 6px", color: "#666" }}>
+                      <strong>Books:</strong>
+                    </p>
+                    <ul style={{ margin: "0 0 10px", paddingLeft: "18px" }}>
+                      {(order.books || []).map((b, i) => (
+                        <li key={i} style={{ marginBottom: "4px" }}>
+                          {(b && b.title) || "Book"}{" "}
+                          {b && b.price != null && b.price !== ""
+                            ? `— ₹${b.price}`
+                            : ""}
+                        </li>
+                      ))}
+                    </ul>
+                    <p style={{ margin: 0, fontWeight: 600 }}>
+                      Total: ₹{order.totalPrice}
+                    </p>
+                    <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#888" }}>
+                      {order.createdAt
+                        ? new Date(order.createdAt).toLocaleString()
+                        : ""}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : null}
+
+        {adminTab === "books" ? (
+        <>
         <section
           style={{
             marginBottom: "28px",
@@ -687,6 +830,8 @@ function Admin() {
             </ul>
           )}
         </section>
+        </>
+        ) : null}
       </div>
     </div>
   );

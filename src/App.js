@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import Admin from "./Admin";
 import { BOOKS_URL, ORDERS_URL } from "./apiConfig";
-import { Card, CardContent } from "./components/ui/card";
-
-const BOOK_IMAGE_PLACEHOLDER = "https://via.placeholder.com/150";
+import { BookCard } from "./components/BookCard";
 
 function formatPriceDisplay(price) {
   const hasPrice = price !== undefined && price !== null && price !== "";
@@ -351,40 +349,12 @@ function App() {
             </div>
             <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
               {groupedBooks[categoryName].map((book) => (
-                <Card key={book._id}>
-                  <CardContent className="p-4">
-                    <img
-                      src={String(book.image ?? "").trim() || BOOK_IMAGE_PLACEHOLDER}
-                      alt={book.title || ""}
-                      className="h-48 w-full rounded-md object-cover"
-                      onError={(e) => {
-                        if (e.currentTarget.src !== BOOK_IMAGE_PLACEHOLDER) {
-                          e.currentTarget.src = BOOK_IMAGE_PLACEHOLDER;
-                        }
-                      }}
-                    />
-                    <h3 className="mt-2 font-semibold">{book.title}</h3>
-                    <p className="text-sm text-gray-500">{book.author}</p>
-                    <p className="text-sm text-gray-500">{formatPriceDisplay(book.price)}</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        className="rounded-md bg-black px-3 py-1.5 text-sm font-medium text-white hover:bg-black/90"
-                        onClick={() => addToCart(book)}
-                      >
-                        Add to Cart
-                      </button>
-                      <a
-                        className="rounded-md border border-[hsl(var(--border))] px-3 py-1.5 text-sm hover:bg-gray-50"
-                        href={buildWhatsAppOrderUrl(book.title, book.price)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Order on WhatsApp
-                      </a>
-                    </div>
-                  </CardContent>
-                </Card>
+                <BookCard
+                  key={book._id}
+                  book={book}
+                  onAddToCart={addToCart}
+                  whatsappUrl={buildWhatsAppOrderUrl(book.title, book.price)}
+                />
               ))}
             </div>
           </div>

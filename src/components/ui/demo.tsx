@@ -40,4 +40,7 @@ function Component() {
   );
 }
 
+const Default = Component;
+
+export { Default };
 export { Component };

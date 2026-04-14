@@ -1,6 +1,6 @@
 const BOOK_IMAGE_PLACEHOLDER = "https://via.placeholder.com/150";
 
-export function BookCard({ book, onAddToCart, whatsappUrl }) {
+export function BookCard({ book, cart, setCart, whatsappUrl }) {
   const imageSrc = String(book?.image ?? "").trim() || BOOK_IMAGE_PLACEHOLDER;
 
   return (
@@ -23,7 +23,7 @@ export function BookCard({ book, onAddToCart, whatsappUrl }) {
       <button
         type="button"
         className="mt-2 w-full bg-black text-white py-1 rounded"
-        onClick={() => onAddToCart(book)}
+        onClick={() => setCart([...cart, book])}
       >
         Add to Cart
       </button>

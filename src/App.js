@@ -1,6 +1,32 @@
-import { useEffect, useState } from "react";
-import { BOOKS_URL } from "./apiConfig";
+import { useState } from "react";
 import { BookCard } from "./components/BookCard";
+
+const initialBooks = [
+  {
+    id: 1,
+    title: "The Alchemist",
+    price: 299,
+    image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=600",
+    category: "General",
+    author: "Paulo Coelho",
+  },
+  {
+    id: 2,
+    title: "Atomic Habits",
+    price: 399,
+    image: "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=600",
+    category: "General",
+    author: "James Clear",
+  },
+  {
+    id: 3,
+    title: "Rich Dad Poor Dad",
+    price: 349,
+    image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600",
+    category: "General",
+    author: "Robert Kiyosaki",
+  },
+];
 
 function buildWhatsAppOrderUrl(title, price) {
   const raw = process.env.REACT_APP_WHATSAPP_NUMBER || "";
@@ -13,18 +39,13 @@ function buildWhatsAppOrderUrl(title, price) {
 }
 
 function App() {
-  const [books, setBooks] = useState([]);
+  const [page, setPage] = useState("home");
   const [cart, setCart] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [books, setBooks] = useState(initialBooks);
+  const [searchPhone, setSearchPhone] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [page, setPage] = useState("home");
-
-  useEffect(() => {
-    fetch(BOOKS_URL)
-      .then((res) => res.json())
-      .then((data) => setBooks(data))
-      .catch((err) => console.log(err));
-  }, []);
 
   const categories = [
     "All",
@@ -45,11 +66,6 @@ function App() {
 
     return matchesSearch && matchesCategory;
   });
-
-  const addToCart = (book) => {
-    const cartLineId = Date.now() + Math.random();
-    setCart((prev) => [...prev, { ...book, cartLineId }]);
-  };
 
   return (
     <div className="min-h-screen">
@@ -111,9 +127,10 @@ function App() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {filteredBooks.map((book) => (
                 <BookCard
-                  key={book._id}
+                  key={book.id ?? book._id}
                   book={book}
-                  onAddToCart={addToCart}
+                  cart={cart}
+                  setCart={setCart}
                   whatsappUrl={buildWhatsAppOrderUrl(book.title, book.price)}
                 />
               ))}
@@ -123,15 +140,59 @@ function App() {
 
         {page === "cart" && (
           <div>
-            <h2 className="text-lg font-semibold">Cart</h2>
-            <p>{cart.length === 0 ? "Cart is empty" : "Items in cart"}</p>
+            <h2 className="text-lg font-semibold mb-4">Cart</h2>
+            {cart.length === 0 ? (
+              <p>Cart is empty</p>
+            ) : (
+              cart.map((item, i) => (
+                <div key={i} className="flex justify-between border-b py-2">
+                  <span>{item.title}</span>
+                  <span>₹{item.price}</span>
+                </div>
+              ))
+            )}
+
+            <button
+              className="mt-4 bg-green-600 text-white px-4 py-2 rounded"
+              onClick={() => {
+                const phone = prompt("Enter phone number");
+                if (!phone) return;
+                const newOrder = {
+                  id: Date.now(),
+                  phone,
+                  items: cart,
+                };
+                setOrders([...orders, newOrder]);
+                setCart([]);
+                alert("Order placed!");
+              }}
+              disabled={cart.length === 0}
+            >
+              Place Order
+            </button>
           </div>
         )}
 
         {page === "track" && (
           <div>
-            <h2 className="text-lg font-semibold">Track Order</h2>
-            <p>Enter order ID to track</p>
+            <h2 className="text-lg font-semibold mb-4">Track Order</h2>
+            <input
+              type="text"
+              placeholder="Enter phone number"
+              className="border px-3 py-2 rounded w-full md:w-1/3"
+              onChange={(e) => setSearchPhone(e.target.value)}
+            />
+
+            <div className="mt-4">
+              {orders
+                .filter((o) => o.phone === searchPhone)
+                .map((o) => (
+                  <div key={o.id} className="border p-3 mb-2">
+                    <p>Order ID: {o.id}</p>
+                    <p>Items: {o.items.length}</p>
+                  </div>
+                ))}
+            </div>
           </div>
         )}
 
@@ -144,8 +205,43 @@ function App() {
 
         {page === "admin" && (
           <div>
-            <h2 className="text-lg font-semibold">Admin Panel</h2>
-            <p>Manage books here</p>
+            <h2 className="text-lg font-semibold mb-4">Admin Panel</h2>
+            <button
+              className="bg-blue-600 text-white px-3 py-2 rounded mb-4"
+              onClick={() => {
+                const title = prompt("Book title");
+                const price = prompt("Price");
+                const image = prompt("Image URL");
+
+                if (title && price && image) {
+                  setBooks([
+                    ...books,
+                    {
+                      id: Date.now(),
+                      title,
+                      price,
+                      image,
+                      category: "General",
+                      author: "Unknown",
+                    },
+                  ]);
+                }
+              }}
+            >
+              Add Book
+            </button>
+
+            {books.map((b) => (
+              <div key={b.id ?? b._id} className="flex justify-between border-b py-2">
+                <span>{b.title}</span>
+                <button
+                  className="text-red-500"
+                  onClick={() => setBooks(books.filter((x) => (x.id ?? x._id) !== (b.id ?? b._id)))}
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
           </div>
         )}
       </main>

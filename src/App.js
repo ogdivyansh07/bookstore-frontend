@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Admin from "./Admin";
 import { BOOKS_URL, ORDERS_URL } from "./apiConfig";
+import { Card, CardContent } from "./components/ui/card";
 
 const BOOK_IMAGE_PLACEHOLDER = "https://via.placeholder.com/150";
 
@@ -261,8 +262,8 @@ function App() {
   );
 
   return (
-    <div className="store-root">
-      <nav className="store-nav" aria-label="Main">
+    <div className="min-h-screen">
+      <nav className="border-b border-[hsl(var(--border))] bg-white/90 backdrop-blur" aria-label="Main">
         <a href="#/" className="store-nav-brand">
           <span className="store-nav-brand-icon" aria-hidden="true">
             {"\u{1F4DA}"}
@@ -300,7 +301,7 @@ function App() {
         </div>
       </nav>
 
-      <main className="store-main">
+      <main className="max-w-7xl mx-auto px-4 py-6">
         {/* Search + category filters */}
         <div className="store-panel">
           <label className="store-label" htmlFor="store-search-input">
@@ -348,46 +349,33 @@ function App() {
                 {groupedBooks[categoryName].length === 1 ? "book" : "books"}
               </span>
             </div>
-            <div className="book-grid">
-              {groupedBooks[categoryName].map((book, index) => (
-                <article
-                  key={book._id}
-                  className="book-card"
-                  style={{
-                    animationDelay: `${Math.min(index, 12) * 40}ms`,
-                  }}
-                >
-                  <div className="book-card-media">
+            <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
+              {groupedBooks[categoryName].map((book) => (
+                <Card key={book._id}>
+                  <CardContent className="p-4">
                     <img
-                      src={
-                        String(book.image ?? "").trim() || BOOK_IMAGE_PLACEHOLDER
-                      }
+                      src={String(book.image ?? "").trim() || BOOK_IMAGE_PLACEHOLDER}
                       alt={book.title || ""}
+                      className="h-48 w-full rounded-md object-cover"
                       onError={(e) => {
                         if (e.currentTarget.src !== BOOK_IMAGE_PLACEHOLDER) {
                           e.currentTarget.src = BOOK_IMAGE_PLACEHOLDER;
                         }
                       }}
                     />
-                  </div>
-                  <div className="book-card-body">
-                    <h3>{book.title}</h3>
-                    <p className="book-card-meta">{book.author}</p>
-                    <div className="book-card-price-row">
-                      <p className="book-card-price">
-                        {formatPriceDisplay(book.price)}
-                      </p>
+                    <h3 className="mt-2 font-semibold">{book.title}</h3>
+                    <p className="text-sm text-gray-500">{book.author}</p>
+                    <p className="text-sm text-gray-500">{formatPriceDisplay(book.price)}</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
                       <button
                         type="button"
-                        className="store-btn store-btn-cart store-btn-cart--compact"
+                        className="rounded-md bg-black px-3 py-1.5 text-sm font-medium text-white hover:bg-black/90"
                         onClick={() => addToCart(book)}
                       >
                         Add to Cart
                       </button>
-                    </div>
-                    <div className="book-card-actions">
                       <a
-                        className="store-btn-wa"
+                        className="rounded-md border border-[hsl(var(--border))] px-3 py-1.5 text-sm hover:bg-gray-50"
                         href={buildWhatsAppOrderUrl(book.title, book.price)}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -395,8 +383,8 @@ function App() {
                         Order on WhatsApp
                       </a>
                     </div>
-                  </div>
-                </article>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>

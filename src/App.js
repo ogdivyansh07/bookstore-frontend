@@ -1,17 +1,6 @@
 import { useEffect, useState } from "react";
 import Admin from "./Admin";
 import { BOOKS_URL, ORDERS_URL } from "./apiConfig";
-import { Button } from "components/ui/button";
-import { Input } from "components/ui/input";
-import { Gallery4 } from "@/components/blocks/gallery4";
-import {
-  Dialog as ShadDialog,
-  DialogTrigger as ShadDialogTrigger,
-  DialogContent as ShadDialogContent,
-  DialogHeader as ShadDialogHeader,
-  DialogTitle as ShadDialogTitle,
-  DialogDescription as ShadDialogDescription,
-} from "components/ui/dialog";
 
 const BOOK_IMAGE_PLACEHOLDER = "https://via.placeholder.com/150";
 
@@ -312,27 +301,6 @@ function App() {
       </nav>
 
       <main className="store-main">
-        <div className="store-panel">
-          <p className="store-label">UI Components Test</p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
-            <Button>Test Button</Button>
-            <Input placeholder="Test input" style={{ maxWidth: "220px" }} />
-            <ShadDialog>
-              <ShadDialogTrigger asChild>
-                <Button variant="outline">Open Dialog</Button>
-              </ShadDialogTrigger>
-              <ShadDialogContent>
-                <ShadDialogHeader>
-                  <ShadDialogTitle>Test Dialog</ShadDialogTitle>
-                  <ShadDialogDescription>
-                    Your shadcn-style dialog is rendering correctly.
-                  </ShadDialogDescription>
-                </ShadDialogHeader>
-              </ShadDialogContent>
-            </ShadDialog>
-          </div>
-        </div>
-
         {/* Search + category filters */}
         <div className="store-panel">
           <label className="store-label" htmlFor="store-search-input">
@@ -663,42 +631,42 @@ function App() {
               ) : null}
               {trackedOrders && trackedOrders.length > 0
                 ? trackedOrders.map((order) => (
-                    <div key={order._id} className="store-track-card">
-                      <p
-                        style={{
-                          margin: "0 0 14px",
-                          display: "flex",
-                          flexWrap: "wrap",
-                          alignItems: "center",
-                          gap: "10px",
-                        }}
-                      >
-                        <span style={{ fontWeight: 600, color: "#334155" }}>Status</span>
-                        <span className={trackStatusPillClass(order.status)}>
-                          {formatOrderStatusLabel(order.status)}
-                        </span>
-                      </p>
-                      <p style={{ margin: "0 0 12px", color: "#64748b", fontSize: "13px" }}>
-                        {order.createdAt
-                          ? new Date(order.createdAt).toLocaleString()
-                          : ""}
-                      </p>
-                      <p style={{ margin: "0 0 6px", fontWeight: 600 }}>Books</p>
-                      <ul style={{ margin: "0 0 10px", paddingLeft: "18px", color: "#333" }}>
-                        {(order.books || []).map((b, i) => (
-                          <li key={i} style={{ marginBottom: "4px" }}>
-                            {(b && b.title) || "Book"}{" "}
-                            {b && b.price != null && b.price !== ""
-                              ? `— ${formatPriceDisplay(b.price)}`
-                              : ""}
-                          </li>
-                        ))}
-                      </ul>
-                      <p style={{ margin: 0, fontWeight: 700 }}>
-                        Total: ₹{order.totalPrice}
-                      </p>
-                    </div>
-                  ))
+                  <div key={order._id} className="store-track-card">
+                    <p
+                      style={{
+                        margin: "0 0 14px",
+                        display: "flex",
+                        flexWrap: "wrap",
+                        alignItems: "center",
+                        gap: "10px",
+                      }}
+                    >
+                      <span style={{ fontWeight: 600, color: "#334155" }}>Status</span>
+                      <span className={trackStatusPillClass(order.status)}>
+                        {formatOrderStatusLabel(order.status)}
+                      </span>
+                    </p>
+                    <p style={{ margin: "0 0 12px", color: "#64748b", fontSize: "13px" }}>
+                      {order.createdAt
+                        ? new Date(order.createdAt).toLocaleString()
+                        : ""}
+                    </p>
+                    <p style={{ margin: "0 0 6px", fontWeight: 600 }}>Books</p>
+                    <ul style={{ margin: "0 0 10px", paddingLeft: "18px", color: "#333" }}>
+                      {(order.books || []).map((b, i) => (
+                        <li key={i} style={{ marginBottom: "4px" }}>
+                          {(b && b.title) || "Book"}{" "}
+                          {b && b.price != null && b.price !== ""
+                            ? `— ${formatPriceDisplay(b.price)}`
+                            : ""}
+                        </li>
+                      ))}
+                    </ul>
+                    <p style={{ margin: 0, fontWeight: 700 }}>
+                      Total: ₹{order.totalPrice}
+                    </p>
+                  </div>
+                ))
                 : null}
             </div>
           </Modal>
@@ -722,10 +690,6 @@ function App() {
             </div>
           </Modal>
         )}
-
-        <div style={{ marginTop: "48px" }}>
-          <Gallery4 />
-        </div>
       </main>
     </div>
   );

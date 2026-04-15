@@ -122,7 +122,7 @@ function App() {
 
   useEffect(() => {
     setTrackedPhone(searchPhone.trim());
-  }, []);
+  }, [searchPhone]);
 
   useEffect(() => {
     const handlePopState = () => {

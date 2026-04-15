@@ -1,8 +1,18 @@
 import { render, screen } from '@testing-library/react';
-import App from './App';
+import { HashRouter as Router, Route, Routes } from 'react-router-dom';
+import { Admin } from './App';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+test('loads admin panel using hash route', () => {
+  window.location.hash = '/admin';
+
+  render(
+    <Router>
+      <Routes>
+        <Route path="/admin" element={<Admin />} />
+      </Routes>
+    </Router>
+  );
+
+  const adminLoginHeading = screen.getByText(/admin login/i);
+  expect(adminLoginHeading).toBeInTheDocument();
 });

@@ -38,9 +38,8 @@ function buildWhatsAppOrderUrl(title, price) {
   return `${base}?${query}`;
 }
 
-function App() {
-  const [view, setView] = useState("store");
-  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+function App({ initialView = "store", adminOnly = false }) {
+  const [view, setView] = useState(initialView);
   const [cart, setCart] = useState(() => {
     const saved = localStorage.getItem("cart");
     return saved ? JSON.parse(saved) : [];
@@ -108,7 +107,7 @@ function App() {
     }, {})
   );
   const cartTotal = cartLineItems.reduce((sum, line) => sum + line.price * line.quantity, 0);
-  const isAdminRoute = currentPath === "/admin";
+  const isAdminRoute = adminOnly;
   const adminPassword =
     process.env.NEXT_PUBLIC_ADMIN_PASSWORD || process.env.REACT_APP_ADMIN_PASSWORD || "";
 
@@ -123,16 +122,6 @@ function App() {
   useEffect(() => {
     setTrackedPhone(searchPhone.trim());
   }, [searchPhone]);
-
-  useEffect(() => {
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname);
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, []);
 
   return (
     <div className="min-h-screen">
@@ -638,6 +627,18 @@ function App() {
       </main>
     </div>
   );
+}
+
+export function Bookstore() {
+  return <App initialView="store" adminOnly={false} />;
+}
+
+export function TrackOrder() {
+  return <App initialView="track" adminOnly={false} />;
+}
+
+export function Admin() {
+  return <App initialView="store" adminOnly />;
 }
 
 export default App;

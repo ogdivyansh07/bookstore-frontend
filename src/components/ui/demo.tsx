@@ -1,4 +1,4 @@
-import { GlowCard } from "@/components/ui/spotlight-card";
+import { GlowCard } from "./spotlight-card";
 
 export function Default() {
   return (

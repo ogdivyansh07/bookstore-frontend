@@ -6,7 +6,7 @@ test('loads admin panel using hash route', () => {
   window.location.hash = '/admin';
 
   render(
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route path="/admin" element={<Admin />} />
       </Routes>

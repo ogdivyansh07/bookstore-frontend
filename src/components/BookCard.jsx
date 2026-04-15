@@ -4,11 +4,11 @@ export function BookCard({ book, cart, setCart, whatsappUrl }) {
   const imageSrc = String(book?.image ?? "").trim() || BOOK_IMAGE_PLACEHOLDER;
 
   return (
-    <div className="border rounded-lg p-3 shadow-sm">
+    <div className="border rounded-xl p-4 shadow-sm bg-white transition-transform duration-200 hover:scale-105">
       <img
         src={imageSrc}
         alt={book?.title || ""}
-        className="w-full h-40 object-cover rounded"
+        className="w-full h-44 object-cover rounded-lg"
         onError={(e) => {
           if (e.currentTarget.src !== BOOK_IMAGE_PLACEHOLDER) {
             e.currentTarget.src = BOOK_IMAGE_PLACEHOLDER;
@@ -16,20 +16,20 @@ export function BookCard({ book, cart, setCart, whatsappUrl }) {
         }}
       />
 
-      <h3 className="mt-2 text-sm font-medium">{book?.title}</h3>
+      <h3 className="mt-3 text-base font-semibold">{book?.title}</h3>
 
-      <p className="text-sm text-gray-600">₹{book?.price ?? "N/A"}</p>
+      <p className="text-sm text-gray-600 mt-1">₹{book?.price ?? "N/A"}</p>
 
       <button
         type="button"
-        className="mt-2 w-full bg-black text-white py-1 rounded"
+        className="mt-3 w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition-colors"
         onClick={() => setCart([...cart, book])}
       >
         Add to Cart
       </button>
 
       <a
-        className="block text-xs text-green-600 mt-1 hover:underline"
+        className="block text-xs text-green-600 mt-2 hover:underline"
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
